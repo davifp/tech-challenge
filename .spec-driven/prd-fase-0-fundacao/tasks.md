@@ -11,5 +11,5 @@
 - [x] 4.0 Quality gate raiz e execução isolada
 - [x] 5.0 Hooks Git (Lefthook + commitlint + lint-staged)
 - [ ] 6.0 Integração contínua (GitHub Actions)
-- [ ] 7.0 Revisão de arquivos herdados e infraestrutura local
-- [ ] 8.0 `DECISIONS.md` e novo `README.md`
+- [x] 7.0 Revisão de arquivos herdados e infraestrutura local
+- [x] 8.0 `DECISIONS.md` e novo `README.md`
