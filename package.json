@@ -1,0 +1,22 @@
+{
+  "name": "tech-challenge",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format:check": "turbo run format:check",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "eslint": "^10.9.1",
+    "prettier": "^3.9.6",
+    "turbo": "^2.10.12",
+    "typescript": "^7.0.2"
+  }
+}
