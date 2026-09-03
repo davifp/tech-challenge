@@ -7,7 +7,7 @@
 
 - [x] 1.0 Esqueleto do monorepo (pnpm workspaces + Turborepo)
 - [x] 2.0 Pacotes de configuração compartilhada (`packages/*`)
-- [ ] 3.0 Esqueletos dos apps e smoke tests (`transactions`, `anti-fraud`, `web`)
+- [x] 3.0 Esqueletos dos apps e smoke tests (`transactions`, `anti-fraud`, `web`)
 - [ ] 4.0 Quality gate raiz e execução isolada
 - [ ] 5.0 Hooks Git (Lefthook + commitlint + lint-staged)
 - [ ] 6.0 Integração contínua (GitHub Actions)
