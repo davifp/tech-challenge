@@ -28,3 +28,18 @@ pnpm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+
+# AI Dev
+.agents
+.claude/*
+!.claude/rules/
+skills-lock.json
+
+# Spec-driven: versiona apenas PRDs, TechSpecs e Lista de Tarefas
+.spec-driven/*
+!.spec-driven/prd-*/
+.spec-driven/prd-*/*
+!.spec-driven/prd-*/prd.md
+!.spec-driven/prd-*/techspec.md
+!.spec-driven/prd-*/tasks.md
