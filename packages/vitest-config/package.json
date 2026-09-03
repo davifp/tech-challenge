@@ -14,11 +14,11 @@
     "setup-react.ts"
   ],
   "peerDependencies": {
-    "vitest": "^5.0.0"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^7.0.1",
-    "@vitejs/plugin-react-swc": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
     "jsdom": "^30.0.1",
     "unplugin-swc": "^1.5.11"
   }

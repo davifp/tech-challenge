@@ -4,11 +4,3 @@ packages:
 allowBuilds:
   '@swc/core': true
 
-peerDependencyRules:
-  allowedVersions:
-    'eslint-plugin-import>eslint': '10'
-    'eslint-plugin-react>eslint': '10'
-minimumReleaseAgeExclude:
-  - '@vitest/mocker@5.0.0'
-  - '@vitest/spy@5.0.0'
-  - vitest@5.0.0

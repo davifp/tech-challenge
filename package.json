@@ -14,7 +14,7 @@
     "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "eslint": "^10.9.1",
+    "eslint": "^9.39.5",
     "prettier": "^3.9.6",
     "turbo": "^2.10.12",
     "typescript": "^5.9.3"
