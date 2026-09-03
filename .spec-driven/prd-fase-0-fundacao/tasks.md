@@ -8,8 +8,8 @@
 - [x] 1.0 Esqueleto do monorepo (pnpm workspaces + Turborepo)
 - [x] 2.0 Pacotes de configuração compartilhada (`packages/*`)
 - [x] 3.0 Esqueletos dos apps e smoke tests (`transactions`, `anti-fraud`, `web`)
-- [ ] 4.0 Quality gate raiz e execução isolada
-- [ ] 5.0 Hooks Git (Lefthook + commitlint + lint-staged)
+- [x] 4.0 Quality gate raiz e execução isolada
+- [x] 5.0 Hooks Git (Lefthook + commitlint + lint-staged)
 - [ ] 6.0 Integração contínua (GitHub Actions)
 - [ ] 7.0 Revisão de arquivos herdados e infraestrutura local
 - [ ] 8.0 `DECISIONS.md` e novo `README.md`
