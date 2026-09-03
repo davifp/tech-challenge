@@ -1,0 +1,27 @@
+{
+  "name": "@tech-challenge/eslint-config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./base.mjs",
+  "exports": {
+    "./base": "./base.mjs",
+    "./node": "./node.mjs",
+    "./react": "./react.mjs"
+  },
+  "files": [
+    "base.mjs",
+    "node.mjs",
+    "react.mjs"
+  ],
+  "peerDependencies": {
+    "eslint": "^10.9.1"
+  },
+  "dependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.12.0",
+    "typescript-eslint": "^8.69.0"
+  }
+}
