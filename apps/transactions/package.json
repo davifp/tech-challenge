@@ -10,13 +10,17 @@
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore",
     "test": "vitest run",
-    "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build"
+    "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build",
+    "db:seed": "prisma db seed",
+    "seed:demo": "tsx prisma/seed.demo.ts"
   },
   "prettier": "@tech-challenge/prettier-config",
   "dependencies": {
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
@@ -27,8 +31,11 @@
     "@tech-challenge/tsconfig": "workspace:*",
     "@tech-challenge/vitest-config": "workspace:*",
     "@types/node": "^22.20.1",
+    "dotenv": "^17.4.2",
     "eslint": "^9.39.5",
     "prettier": "^3.9.6",
+    "prisma": "^7.10.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
   }
