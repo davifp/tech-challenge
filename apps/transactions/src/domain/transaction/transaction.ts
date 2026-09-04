@@ -25,6 +25,11 @@ export type TransactionProps = {
   updatedAt: Date;
 };
 
+type InvariantFields = Pick<
+  TransactionProps,
+  'accountExternalIdDebit' | 'accountExternalIdCredit' | 'value'
+>;
+
 export class Transaction implements TransactionProps {
   readonly transactionExternalId!: string;
   readonly accountExternalIdDebit!: string;
@@ -55,11 +60,16 @@ export class Transaction implements TransactionProps {
     return new Transaction(props);
   }
 
-  private static assertInvariants(input: CreatePendingTransactionInput): void {
-    if (input.value <= MIN_VALUE) {
+  static reconstitute(props: TransactionProps): Transaction {
+    Transaction.assertInvariants(props);
+    return new Transaction(props);
+  }
+
+  private static assertInvariants(fields: InvariantFields): void {
+    if (fields.value <= MIN_VALUE) {
       throw new InvalidTransactionError('value must be greater than 0');
     }
-    if (input.accountExternalIdDebit === input.accountExternalIdCredit) {
+    if (fields.accountExternalIdDebit === fields.accountExternalIdCredit) {
       throw new InvalidTransactionError(
         'accountExternalIdDebit must be different from accountExternalIdCredit',
       );

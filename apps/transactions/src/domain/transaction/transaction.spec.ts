@@ -56,3 +56,38 @@ describe('Transaction.createPending', () => {
     ).toThrow(InvalidTransactionError);
   });
 });
+
+describe('Transaction.reconstitute', () => {
+  it('rebuilds a Transaction from persisted props', () => {
+    const created = Transaction.createPending(buildInput());
+    const rebuilt = Transaction.reconstitute({
+      transactionExternalId: created.transactionExternalId,
+      accountExternalIdDebit: created.accountExternalIdDebit,
+      accountExternalIdCredit: created.accountExternalIdCredit,
+      value: created.value,
+      transferTypeId: created.transferTypeId,
+      transactionStatusId: created.transactionStatusId,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+    });
+    expect(rebuilt.transactionExternalId).toBe(created.transactionExternalId);
+    expect(rebuilt.value).toBe(created.value);
+    expect(rebuilt.transactionStatusId).toBe(created.transactionStatusId);
+  });
+
+  it('reapplies invariants and rejects invalid persisted props', () => {
+    const template = Transaction.createPending(buildInput());
+    expect(() =>
+      Transaction.reconstitute({
+        transactionExternalId: template.transactionExternalId,
+        accountExternalIdDebit: template.accountExternalIdDebit,
+        accountExternalIdCredit: template.accountExternalIdCredit,
+        value: 0,
+        transferTypeId: template.transferTypeId,
+        transactionStatusId: template.transactionStatusId,
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt,
+      }),
+    ).toThrow(InvalidTransactionError);
+  });
+});
