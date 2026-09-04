@@ -1,13 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
-
-const DEFAULT_PORT = 3001;
+import { env } from './infrastructure/config/env.loader';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  const port = Number(process.env.TRANSACTIONS_PORT ?? DEFAULT_PORT);
-  await app.listen(port);
+  await app.listen(env.TRANSACTIONS_PORT);
 }
 
 void bootstrap();
