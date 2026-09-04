@@ -4,7 +4,7 @@
 
 - [x] 1.0 Prisma e PostgreSQL: schema, migrations e seed dos catálogos
 - [x] 2.0 ConfigModule com validação Zod do ambiente
-- [ ] 3.0 Domain: entidades e invariantes Always-Valid
+- [x] 3.0 Domain: entidades e invariantes Always-Valid
 - [ ] 4.0 Application: ports, use cases e helper de hash
 - [ ] 5.0 Adapter HTTP: DTOs Zod, pipe, filtro, mapper e controller
 - [ ] 6.0 Adapter Prisma: repositórios de Transaction e Catalog
