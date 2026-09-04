@@ -1,0 +1,25 @@
+{
+  "name": "@tech-challenge/vitest-config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./node": "./node.ts",
+    "./react": "./react.ts",
+    "./setup-react": "./setup-react.ts"
+  },
+  "files": [
+    "node.ts",
+    "react.ts",
+    "setup-react.ts"
+  ],
+  "peerDependencies": {
+    "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.0.1",
+    "unplugin-swc": "^1.5.11"
+  }
+}

@@ -1,0 +1,15 @@
+# Resumo das tarefas de implementação de Fase 0 — Fundação
+
+**PRD:** `./prd.md`
+**TechSpec:** `./techspec.md`
+
+## Tarefas
+
+- [x] 1.0 Esqueleto do monorepo (pnpm workspaces + Turborepo)
+- [x] 2.0 Pacotes de configuração compartilhada (`packages/*`)
+- [x] 3.0 Esqueletos dos apps e smoke tests (`transactions`, `anti-fraud`, `web`)
+- [x] 4.0 Quality gate raiz e execução isolada
+- [x] 5.0 Hooks Git (Lefthook + commitlint + lint-staged)
+- [ ] 6.0 Integração contínua (GitHub Actions)
+- [x] 7.0 Revisão de arquivos herdados e infraestrutura local
+- [x] 8.0 `DECISIONS.md` e novo `README.md`
