@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule as NestConfigModule } from '@nestjs/config';
 
-import { envSchema } from './env.schema';
+import { validateEnv } from './env.validator';
 
 @Module({
   imports: [
     NestConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      validationSchema: envSchema,
+      validate: validateEnv,
     }),
   ],
 })

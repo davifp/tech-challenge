@@ -9,9 +9,9 @@ function hasAtMostTwoDecimals(value: number): boolean {
 
 export const createTransactionSchema = z
   .strictObject({
-    accountExternalIdDebit: z.uuid(),
-    accountExternalIdCredit: z.uuid(),
-    transferTypeId: z.int().min(1),
+    accountExternalIdDebit: z.uuid().describe('Debit account UUID'),
+    accountExternalIdCredit: z.uuid().describe('Credit account UUID'),
+    transferTypeId: z.int().min(1).describe('Transfer type enum. 1 = transfer.'),
     value: z
       .number()
       .positive()
