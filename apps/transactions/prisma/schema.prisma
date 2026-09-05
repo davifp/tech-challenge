@@ -19,12 +19,27 @@ model Transaction {
   transferType            TransactionType   @relation(fields: [transferTypeId], references: [id])
   transactionStatusId     Int
   transactionStatus       TransactionStatus @relation(fields: [transactionStatusId], references: [id])
+  outboxEvents            OutboxEvent[]
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
   @@index([createdAt(sort: Desc)])
   @@index([transactionStatusId, createdAt(sort: Desc)])
   @@index([transferTypeId, createdAt(sort: Desc)])
+}
+
+model OutboxEvent {
+  eventId       String      @id @db.Uuid
+  aggregateId   String      @db.Uuid
+  aggregate     Transaction @relation(fields: [aggregateId], references: [transactionExternalId])
+  eventName     String      @db.VarChar(128)
+  payload       Json
+  attemptCount  Int         @default(0)
+  nextAttemptAt DateTime    @default(now())
+  publishedAt   DateTime?
+  lastError     String?     @db.Text
+
+  @@index([publishedAt, nextAttemptAt])
 }
 
 model TransactionType {

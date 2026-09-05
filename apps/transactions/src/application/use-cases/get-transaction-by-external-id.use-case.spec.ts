@@ -20,9 +20,7 @@ function buildTransaction(): Transaction {
 
 function buildRepository(): TransactionRepository {
   return {
-    save: vi.fn(),
     findByExternalId: vi.fn(),
-    findByIdempotencyKey: vi.fn(),
     list: vi.fn(),
   };
 }

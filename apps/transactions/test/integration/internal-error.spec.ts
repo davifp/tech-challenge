@@ -12,9 +12,7 @@ function failingTransactionRepository(): TransactionRepository {
     throw new Error(SENSITIVE_ERROR);
   };
   return {
-    save: fail,
     findByExternalId: fail,
-    findByIdempotencyKey: fail,
     list: fail,
   };
 }

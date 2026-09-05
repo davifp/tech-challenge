@@ -1,6 +1,7 @@
 import { Transaction } from '../../domain/transaction/transaction';
 import { IdempotencyKeyConflictError } from '../errors/idempotency-key-conflict.error';
 import { TransferTypeNotFoundError } from '../errors/transfer-type-not-found.error';
+import { createTransactionCreatedEvent } from '../helpers/create-transaction-created-event';
 import { hashBody } from '../helpers/hash-body';
 import {
   type TransactionCatalogRepository,
@@ -9,8 +10,8 @@ import {
 import {
   type IdempotentTransaction,
   type TransactionIdempotency,
-  type TransactionRepository,
-} from '../ports/transaction-repository.port';
+  type TransactionEventStore,
+} from '../ports/transaction-event-store.port';
 
 export type CreateTransactionCommand = {
   accountExternalIdDebit: string;
@@ -27,7 +28,7 @@ export type CreateTransactionResult = {
 
 export class CreateTransactionUseCase {
   constructor(
-    private readonly transactionRepository: TransactionRepository,
+    private readonly transactionEventStore: TransactionEventStore,
     private readonly catalogRepository: TransactionCatalogRepository,
   ) {}
 
@@ -44,7 +45,12 @@ export class CreateTransactionUseCase {
       value: command.value,
       transferTypeId: transferType.id,
     });
-    const saved = await this.transactionRepository.save(transaction, idempotency);
+    const event = createTransactionCreatedEvent(transaction);
+    const saved = await this.transactionEventStore.savePending({
+      transaction,
+      event,
+      idempotency,
+    });
     if (saved.outcome === 'created') {
       return { transaction: saved.transaction, wasReplayed: false };
     }
@@ -55,7 +61,7 @@ export class CreateTransactionUseCase {
   private async tryReplay(
     idempotency: TransactionIdempotency,
   ): Promise<CreateTransactionResult | null> {
-    const existing = await this.transactionRepository.findByIdempotencyKey(idempotency.key);
+    const existing = await this.transactionEventStore.findByIdempotencyKey(idempotency.key);
     if (!existing) return null;
     this.assertSameRequest(existing.bodyHash, idempotency);
     return { transaction: existing.transaction, wasReplayed: true };

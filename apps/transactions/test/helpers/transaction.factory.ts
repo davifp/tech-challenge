@@ -9,6 +9,7 @@ const DEFAULT_STATUS_ID = 1;
 const DEFAULT_VALUE = 100.5;
 
 export type TransactionOverrides = Partial<{
+  transactionExternalId: string;
   transactionStatusId: number;
   transferTypeId: number;
   createdAt: Date;
@@ -24,6 +25,9 @@ export function createTransaction(
 ): Promise<TransactionRecord> {
   return prismaTest.transaction.create({
     data: {
+      ...(overrides.transactionExternalId && {
+        transactionExternalId: overrides.transactionExternalId,
+      }),
       accountExternalIdDebit: overrides.accountExternalIdDebit ?? randomUUID(),
       accountExternalIdCredit: overrides.accountExternalIdCredit ?? randomUUID(),
       value: overrides.value ?? DEFAULT_VALUE,

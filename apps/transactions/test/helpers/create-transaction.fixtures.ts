@@ -5,10 +5,9 @@ import { vi } from 'vitest';
 import { type TransactionCatalogRepository } from '../../src/application/ports/transaction-catalog-repository.port';
 import {
   type SaveTransactionResult,
-  type TransactionRepository,
-} from '../../src/application/ports/transaction-repository.port';
+  type TransactionEventStore,
+} from '../../src/application/ports/transaction-event-store.port';
 import { type CreateTransactionCommand } from '../../src/application/use-cases/create-transaction.use-case';
-import { type Transaction } from '../../src/domain/transaction/transaction';
 import { TRANSFER_TYPE_ID } from '../../src/domain/transaction/transaction-type';
 
 export function buildCommand(
@@ -24,18 +23,16 @@ export function buildCommand(
 }
 
 export function buildRepositories(): {
-  transactionRepository: TransactionRepository;
+  transactionEventStore: TransactionEventStore;
   catalogRepository: TransactionCatalogRepository;
 } {
   return {
-    transactionRepository: {
-      save: vi.fn(async (transaction: Transaction): Promise<SaveTransactionResult> => ({
+    transactionEventStore: {
+      savePending: vi.fn(async ({ transaction }): Promise<SaveTransactionResult> => ({
         outcome: 'created',
         transaction,
       })),
-      findByExternalId: vi.fn(),
       findByIdempotencyKey: vi.fn().mockResolvedValue(null),
-      list: vi.fn(),
     },
     catalogRepository: {
       findTransferTypeById: vi.fn().mockResolvedValue({ id: TRANSFER_TYPE_ID, name: 'transfer' }),

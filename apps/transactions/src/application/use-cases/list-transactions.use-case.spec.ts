@@ -13,9 +13,7 @@ const EMPTY_RESULT: ListTransactionsResult = { items: [], total: 0 };
 
 function buildRepository(result: ListTransactionsResult = EMPTY_RESULT): TransactionRepository {
   return {
-    save: vi.fn(),
     findByExternalId: vi.fn(),
-    findByIdempotencyKey: vi.fn(),
     list: vi.fn().mockResolvedValue(result),
   };
 }
