@@ -8,15 +8,17 @@ Decisões estruturantes deste repositório. Formato conforme `PRACTICES.md` → 
 
 **Alternativas consideradas:** três repositórios separados por serviço.
 
-**Por quê:** os três apps compartilham stack, quality gate, hooks e CI. Um repositório único elimina a triplicação de ferramentas e permite um comando (`pnpm quality`) que garante coerência entre eles. Polirepo faria sentido se o repositório fosse muito maior ou se os serviços tivessem ciclos de vida e times independentes, o que não é o caso.
+**Por quê:** os três apps compartilham a mesma stack, quality gate, hooks e CI. Mantê-los em um único repositório evita a duplicação de ferramentas e permite usar o comando pnpm quality para garantir a consistência do projeto. A separação em vários repositórios faria sentido se o projeto fosse maior, tivesse times ou ciclos de vida independentes, ou se algum microsserviço atendesse a vários consumidores e precisasse evoluir de forma autônoma. Esse não é o caso atualmente.
 
-## 2. Orquestração: Turborepo
+## 2. Turborepo
 
-**Decisão:** usar Turborepo (`turbo run <task>`) sobre os workspaces do pnpm.
+**Decisão:** usar Turborepo sobre os workspaces do pnpm.
 
-**Alternativas consideradas:** Nx.
+**Alternativas consideradas:** somente scripts do pnpm e Nx.
 
-**Por quê:** Turborepo dá cache local e no CI e entende quem depende de quem entre os pacotes (`packages/*` → `apps/*`) com uma configuração bem direta: um `turbo.json` curto, sem plugin system, sem tentar adivinhar nada. Nx faz o mesmo, e em alguns pontos exige até menos config porque ele lê sozinho as configs das ferramentas pra montar o cache. O problema é que vem com um modelo maior pra aprender (targets, executors, generators, plugins), e isso só compensa quando o monorepo tem muitos pacotes. Turborepo também é o padrão do time do Next/Vercel, então integrar com o app `web` é uma preocupação a menos.
+**Por quê:** o Turborepo oferece cache e organiza a ordem das tarefas entre os pacotes. Scripts do
+pnpm seriam mais simples, mas não teriam esse cache. Nx também funcionaria, porém traz mais conceitos
+do que precisamos neste projeto.
 
 ## 3. Testes: Vitest em todos os apps
 
@@ -26,13 +28,14 @@ Decisões estruturantes deste repositório. Formato conforme `PRACTICES.md` → 
 
 **Por quê:** ter a mesma ferramenta de teste nos três apps é bem mais confortável que ficar pulando entre Jest no backend e Vitest no frontend. Escolhi Vitest porque roda ESM direto, executa os arquivos de teste em paralelo por padrão e deixa o `packages/vitest-config` compartilhado entre os três. No NestJS, o `unplugin-swc` resolve os decorators sem trabalho extra, então trocar o Jest oficial não custou nada.
 
-## 4. Hooks Git: Lefthook
+## 4. Lefthook e lint-staged
 
-**Decisão:** Lefthook como runner de hooks (`pre-commit`, `commit-msg`), instalado automaticamente pelo `postinstall`.
+**Decisão:** usar Lefthook para os hooks e `lint-staged` para limitar lint e formatação aos arquivos
+alterados. A instalação acontece pelo `prepare` da raiz.
 
 **Alternativas consideradas:** Husky.
 
-**Por quê:** quando usei Husky em versões mais antigas, o `git commit` sempre pesava porque cada hook subia um processo Node. A v9 resolveu isso, então performance sozinha não é mais motivo pra escolher um dos dois. O que me fez ficar com Lefthook é a configuração: um único YAML descreve tudo (quais hooks rodam, quais comandos, em que ordem, o que roda em paralelo, quais tipos de arquivo cada comando pega), fácil de ler e comparar no PR. No Husky, cada hook vira um shell script separado dentro de `.husky/` e os detalhes você monta na mão com `lint-staged`. O `postinstall` instala os hooks, sem passo extra depois do `pnpm install`.
+**Por quê:** no Lefthook, todos os hooks ficam descritos no mesmo arquivo YAML, o que facilita entender e alterar essa configuração. O Husky também resolveria, mas costuma espalhar os hooks em vário scripts. Neste projeto, o Lefthook organiza a execução e o `lint-staged` escolhe quais arquivos serão verificados.
 
 ## 5. Configs compartilhadas em `packages/*`
 
@@ -41,3 +44,82 @@ Decisões estruturantes deste repositório. Formato conforme `PRACTICES.md` → 
 **Alternativas consideradas:** manter as configs na raiz e cada app estender via caminho relativo.
 
 **Por quê:** cada config tem seu próprio `package.json` (com as dependências que ela usa listadas ali mesmo) e é importada pelo nome do pacote, sem caminho relativo. Acaba com os `../../../` frágeis e segue o padrão dos monorepos NestJS/Next de hoje.
+
+## 6. Arquitetura hexagonal com casos de uso
+
+**Decisão:** separar o serviço entre domínio, aplicação e adapters. Cada operação da API tem um
+caso de uso próprio, e o acesso ao banco acontece por portas definidas na camada de aplicação.
+
+**Alternativas consideradas:** seguir a estrutura tradicional do NestJS, com controllers chamando
+services diretamente ligados ao ORM.
+
+**Por quê:** a estrutura tradicional atende bem aplicações menores, mas pode aproximar as
+regras de negócio do framework e do ORM. Como o serviço também terá integrações com PostgreSQL
+e Kafka, a separação mantém o núcleo independente dessas tecnologias e permite testar ou
+substituir uma integração sem reescrever as regras da transação.
+
+## 7. Paginação por página e limite
+
+**Decisão:** usar paginação por offset com `page` e `limit`, ordenando as transações mais recentes
+primeiro.
+
+**Alternativas consideradas:** cursor.
+
+**Por quê:** o dashboard precisa navegar por páginas e exibir o total de registros. Cursor seria
+mais adequado para volumes muito maiores, mas adicionaria complexidade sem benefício agora.
+
+## 8. UUID v7 como identificador da transação
+
+**Decisão:** usar `transactionExternalId` como chave primária em UUID v7, sem manter um segundo ID
+interno.
+
+**Alternativas consideradas:** inteiro incremental com UUID externo separado ou UUID v4 como chave
+primária.
+
+**Por quê:** um único identificador simplifica o modelo e evita expor IDs sequenciais. O UUID v7
+também preserva melhor a localidade dos índices do que UUIDs totalmente aleatórios.
+
+## 9. Criação retorna o recurso completo
+
+**Decisão:** responder ao `POST /transactions` com `201 Created`, header `Location` e o mesmo corpo
+completo usado na consulta da transação.
+
+**Alternativas consideradas:** `202 Accepted` ou uma resposta contendo apenas o identificador.
+
+**Por quê:** a transação já foi persistida quando a resposta é enviada. O status `pending` é um
+estado do negócio, não uma criação pendente, e devolver o recurso evita uma consulta logo depois do
+POST.
+
+## 10. Idempotência na criação de transações
+
+**Decisão:** aceitar o header opcional `Idempotency-Key` no `POST /transactions` para evitar
+que a mesma transação seja criada mais de uma vez.
+
+**Alternativas consideradas:** deixar o cliente lidar com requisições duplicadas ou criar uma
+tabela só para controlar essas chaves.
+
+**Por quê:** alguma falha de rede podem levar o cliente a reenviar a mesma requisição, sem que isso
+represente uma nova transação. A combinação de restrição única com operação atômica garante a
+idempotência mesmo diante de requisições concorrentes. Como a chave é opcional, requisições sem ela não
+têm essa garantia; além disso, ela protege apenas a entrada HTTP e não substitui a estratégia de
+idempotência necessária no consumo de eventos Kafka.
+
+## 11. Envelope de erro único
+
+**Decisão:** responder erros no formato `{ error: { code, message, details? } }` em todos os
+endpoints.
+
+**Alternativas consideradas:** manter o formato padrão do NestJS.
+
+**Por quê:** o cliente recebe um código estável para tratar cada situação e detalhes por campo nos
+erros de validação. Falhas internas usam uma mensagem genérica para não expor informações do
+servidor.
+
+## 12. Valor monetário como decimal
+
+**Decisão:** salvar os valores como `Decimal(19,2)` no banco e usar número na aplicação e na API.
+
+**Alternativa considerada:** criar um objeto `Money` no domínio.
+
+**Por quê:** como ainda não fazemos cálculos com dinheiro, o `Money` deixaria o código mais complexo
+sem trazer benefício agora. Se isso mudar, ele poderá ser adicionado depois.

@@ -1,0 +1,40 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Transaction {
+  transactionExternalId   String            @id @default(uuid(7)) @db.Uuid
+  idempotencyKey          String?           @unique @db.VarChar(64)
+  bodyHash                String?           @db.VarChar(64)
+  accountExternalIdDebit  String            @db.Uuid
+  accountExternalIdCredit String            @db.Uuid
+  value                   Decimal           @db.Decimal(19, 2)
+  transferTypeId          Int
+  transferType            TransactionType   @relation(fields: [transferTypeId], references: [id])
+  transactionStatusId     Int
+  transactionStatus       TransactionStatus @relation(fields: [transactionStatusId], references: [id])
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@index([transactionStatusId, createdAt(sort: Desc)])
+  @@index([transferTypeId, createdAt(sort: Desc)])
+}
+
+model TransactionType {
+  id           Int           @id
+  name         String        @unique @db.VarChar(32)
+  transactions Transaction[]
+}
+
+model TransactionStatus {
+  id           Int           @id
+  name         String        @unique @db.VarChar(32)
+  transactions Transaction[]
+}
