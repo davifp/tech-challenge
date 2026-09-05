@@ -35,8 +35,9 @@ const useCaseProviders: Provider[] = [
   },
   {
     provide: ListTransactionsUseCase,
-    useFactory: (repo: TransactionRepository) => new ListTransactionsUseCase(repo),
-    inject: [TRANSACTION_REPOSITORY],
+    useFactory: (repo: TransactionRepository, catalog: TransactionCatalogRepository) =>
+      new ListTransactionsUseCase(repo, catalog),
+    inject: [TRANSACTION_REPOSITORY, TRANSACTION_CATALOG_REPOSITORY],
   },
 ];
 

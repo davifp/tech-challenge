@@ -18,6 +18,7 @@ import { ListTransactionsUseCase } from '../../application/use-cases/list-transa
 import { IdempotencyKey } from './decorators/idempotency-key.decorator';
 import { CreateTransactionDto } from './dtos/create-transaction.dto';
 import { ListTransactionsDto } from './dtos/list-transactions.dto';
+import { TransactionPathDto } from './dtos/transaction-path.dto';
 import {
   toTransactionResponse,
   type TransactionResponse,
@@ -64,10 +65,8 @@ export class TransactionsController {
 
   @Get(':transactionExternalId')
   @HttpCode(HttpStatus.OK)
-  async findById(
-    @Param('transactionExternalId') transactionExternalId: string,
-  ): Promise<TransactionResponse> {
-    const transaction = await this.getTransactionByExternalId.execute(transactionExternalId);
+  async findById(@Param() params: TransactionPathDto): Promise<TransactionResponse> {
+    const transaction = await this.getTransactionByExternalId.execute(params.transactionExternalId);
     return toTransactionResponse(transaction);
   }
 

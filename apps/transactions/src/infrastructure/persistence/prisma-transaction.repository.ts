@@ -89,7 +89,7 @@ export class PrismaTransactionRepository implements TransactionRepository {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.transaction.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { transactionExternalId: 'desc' }],
         skip: (filters.page - 1) * filters.limit,
         take: filters.limit,
       }),

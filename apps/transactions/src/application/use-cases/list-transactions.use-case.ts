@@ -1,4 +1,6 @@
 import { type TransactionStatusName } from '../../domain/transaction/transaction-status';
+import { TransferTypeNotFoundError } from '../errors/transfer-type-not-found.error';
+import { type TransactionCatalogRepository } from '../ports/transaction-catalog-repository.port';
 import {
   type ListTransactionsFilters,
   type TransactionRepository,
@@ -27,12 +29,22 @@ export type ListTransactionsResult = {
 };
 
 export class ListTransactionsUseCase {
-  constructor(private readonly transactionRepository: TransactionRepository) {}
+  constructor(
+    private readonly transactionRepository: TransactionRepository,
+    private readonly catalogRepository: TransactionCatalogRepository,
+  ) {}
 
   async execute(query: ListTransactionsQuery = {}): Promise<ListTransactionsResult> {
     const filters = normalizeFilters(query);
+    await this.assertTransferTypeExists(filters.transferTypeId);
     const { items, total } = await this.transactionRepository.list(filters);
     return { items, page: filters.page, limit: filters.limit, total };
+  }
+
+  private async assertTransferTypeExists(transferTypeId: number | undefined): Promise<void> {
+    if (!transferTypeId) return;
+    const transferType = await this.catalogRepository.findTransferTypeById(transferTypeId);
+    if (!transferType) throw new TransferTypeNotFoundError(transferTypeId);
   }
 }
 
