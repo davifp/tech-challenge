@@ -5,6 +5,9 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    include: ['src/**/*.{test,spec}.ts'],
+    include: ['test/**/*.{test,spec}.ts'],
+    globalSetup: ['./test/setup/global-setup.ts'],
+    setupFiles: ['./test/setup/reset.ts'],
+    fileParallelism: false,
   },
 });

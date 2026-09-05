@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore",
-    "test": "vitest run",
+    "pretest": "prisma generate",
+    "test": "pnpm test:unit && pnpm test:integration",
+    "test:unit": "vitest run --config vitest.config.mts",
+    "test:integration": "vitest run --config vitest.integration.config.mts",
     "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build",
     "db:seed": "prisma db seed",
     "seed:demo": "tsx prisma/seed.demo.ts"

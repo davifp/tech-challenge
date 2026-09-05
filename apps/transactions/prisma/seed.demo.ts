@@ -20,8 +20,14 @@ function pickStatus(index: number): number {
   return PENDING_STATUS_ID;
 }
 
-function buildDemoTransaction(index: number): Prisma.TransactionCreateInput {
+function pickDemoValue(index: number): number {
   const value = DEMO_VALUES[index % DEMO_VALUES.length];
+  if (value === undefined) throw new Error('DEMO_VALUES must not be empty');
+  return value;
+}
+
+function buildDemoTransaction(index: number): Prisma.TransactionCreateInput {
+  const value = pickDemoValue(index);
   const daysAgo = index % 30;
   const createdAt = new Date(Date.now() - daysAgo * MILLIS_PER_DAY);
   return {
