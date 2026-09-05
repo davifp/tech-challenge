@@ -10,9 +10,31 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: challenge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/challenge?schema=public
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/challenge_test?schema=public
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create test database
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d postgres -c 'CREATE DATABASE challenge_test;'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -35,6 +57,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @tech-challenge/transactions generate
 
       - name: Quality gate
         run: pnpm quality
