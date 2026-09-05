@@ -6,7 +6,11 @@ import {
   type TransactionCatalogRepository,
   type TransferTypeCatalogEntry,
 } from '../ports/transaction-catalog-repository.port';
-import { type TransactionRepository } from '../ports/transaction-repository.port';
+import {
+  type IdempotentTransaction,
+  type TransactionIdempotency,
+  type TransactionRepository,
+} from '../ports/transaction-repository.port';
 
 export type CreateTransactionCommand = {
   accountExternalIdDebit: string;
@@ -28,8 +32,9 @@ export class CreateTransactionUseCase {
   ) {}
 
   async execute(command: CreateTransactionCommand): Promise<CreateTransactionResult> {
-    if (command.idempotencyKey) {
-      const replay = await this.tryReplay(command.idempotencyKey, command);
+    const idempotency = this.buildIdempotency(command);
+    if (idempotency) {
+      const replay = await this.tryReplay(idempotency);
       if (replay) return replay;
     }
     const transferType = await this.resolveTransferType(command.transferTypeId);
@@ -39,27 +44,39 @@ export class CreateTransactionUseCase {
       value: command.value,
       transferTypeId: transferType.id,
     });
-    const saved = await this.transactionRepository.save(transaction, command.idempotencyKey);
-    return { transaction: saved, wasReplayed: false };
+    const saved = await this.transactionRepository.save(transaction, idempotency);
+    if (saved.outcome === 'created') {
+      return { transaction: saved.transaction, wasReplayed: false };
+    }
+    this.assertSameRequest(saved.bodyHash, idempotency);
+    return { transaction: saved.transaction, wasReplayed: true };
   }
 
   private async tryReplay(
-    idempotencyKey: string,
-    command: CreateTransactionCommand,
+    idempotency: TransactionIdempotency,
   ): Promise<CreateTransactionResult | null> {
-    const existing = await this.transactionRepository.findByIdempotencyKey(idempotencyKey);
+    const existing = await this.transactionRepository.findByIdempotencyKey(idempotency.key);
     if (!existing) return null;
-    const existingHash = hashBody(existing);
-    const newHash = hashBody(command);
-    if (existingHash !== newHash) {
-      throw new IdempotencyKeyConflictError(idempotencyKey);
-    }
-    return { transaction: existing, wasReplayed: true };
+    this.assertSameRequest(existing.bodyHash, idempotency);
+    return { transaction: existing.transaction, wasReplayed: true };
   }
 
   private async resolveTransferType(transferTypeId: number): Promise<TransferTypeCatalogEntry> {
     const transferType = await this.catalogRepository.findTransferTypeById(transferTypeId);
     if (!transferType) throw new TransferTypeNotFoundError(transferTypeId);
     return transferType;
+  }
+
+  private buildIdempotency(command: CreateTransactionCommand): TransactionIdempotency | undefined {
+    if (!command.idempotencyKey) return undefined;
+    return { key: command.idempotencyKey, bodyHash: hashBody(command) };
+  }
+
+  private assertSameRequest(
+    persistedBodyHash: IdempotentTransaction['bodyHash'],
+    idempotency: TransactionIdempotency | undefined,
+  ): void {
+    if (!idempotency || persistedBodyHash === idempotency.bodyHash) return;
+    throw new IdempotencyKeyConflictError(idempotency.key);
   }
 }

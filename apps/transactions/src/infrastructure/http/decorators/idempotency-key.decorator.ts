@@ -6,7 +6,7 @@ import { z } from 'zod';
 const IDEMPOTENCY_KEY_HEADER = 'idempotency-key';
 export const IDEMPOTENCY_KEY_MAX_LENGTH = 64;
 
-export const idempotencyKeySchema = z.string().max(IDEMPOTENCY_KEY_MAX_LENGTH).optional();
+export const idempotencyKeySchema = z.string().min(1).max(IDEMPOTENCY_KEY_MAX_LENGTH).optional();
 
 function extractIdempotencyKey(context: ExecutionContext): string | undefined {
   const request = context.switchToHttp().getRequest<Request>();

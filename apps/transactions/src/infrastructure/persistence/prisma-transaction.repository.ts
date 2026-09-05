@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
-import { hashBody } from '../../application/helpers/hash-body';
 import {
+  type IdempotentTransaction,
   type ListTransactionsFilters,
   type ListTransactionsResult,
+  type SaveTransactionResult,
+  type TransactionIdempotency,
   type TransactionRepository,
 } from '../../application/ports/transaction-repository.port';
 import { type Transaction } from '../../domain/transaction/transaction';
@@ -16,10 +18,14 @@ import {
 } from '../../domain/transaction/transaction-status';
 import { Prisma } from '../../generated/prisma/client';
 
-import { toTransactionCreateInput, toTransactionEntity } from './mappers/transaction-record.mapper';
+import {
+  toIdempotentTransaction,
+  toTransactionCreateInput,
+  toTransactionEntity,
+} from './mappers/transaction-record.mapper';
+import { isPrismaUniqueConflictOn } from './prisma-unique-conflict';
 import { PrismaService } from './prisma.service';
 
-const PRISMA_UNIQUE_CONSTRAINT_CODE = 'P2002';
 const IDEMPOTENCY_KEY_COLUMN = 'idempotencyKey';
 
 const STATUS_ID_BY_NAME: Record<TransactionStatusName, TransactionStatusId> = {
@@ -27,14 +33,6 @@ const STATUS_ID_BY_NAME: Record<TransactionStatusName, TransactionStatusId> = {
   approved: APPROVED_STATUS_ID,
   rejected: REJECTED_STATUS_ID,
 };
-
-function isIdempotencyConflict(error: unknown): boolean {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
-  if (error.code !== PRISMA_UNIQUE_CONSTRAINT_CODE) return false;
-  const target = error.meta?.target;
-  if (Array.isArray(target)) return target.includes(IDEMPOTENCY_KEY_COLUMN);
-  return typeof target === 'string' && target.includes(IDEMPOTENCY_KEY_COLUMN);
-}
 
 function buildWhere(filters: ListTransactionsFilters): Prisma.TransactionWhereInput {
   return {
@@ -53,17 +51,22 @@ function buildWhere(filters: ListTransactionsFilters): Prisma.TransactionWhereIn
 export class PrismaTransactionRepository implements TransactionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(transaction: Transaction, idempotencyKey?: string): Promise<Transaction> {
-    const extras = idempotencyKey ? { idempotencyKey, bodyHash: hashBody(transaction) } : undefined;
+  async save(
+    transaction: Transaction,
+    idempotency?: TransactionIdempotency,
+  ): Promise<SaveTransactionResult> {
+    const extras = idempotency
+      ? { idempotencyKey: idempotency.key, bodyHash: idempotency.bodyHash }
+      : undefined;
     try {
       const record = await this.prisma.transaction.create({
         data: toTransactionCreateInput(transaction, extras),
       });
-      return toTransactionEntity(record);
+      return { outcome: 'created', transaction: toTransactionEntity(record) };
     } catch (error) {
-      if (idempotencyKey && isIdempotencyConflict(error)) {
-        const existing = await this.findByIdempotencyKey(idempotencyKey);
-        if (existing) return existing;
+      if (idempotency && isPrismaUniqueConflictOn(error, IDEMPOTENCY_KEY_COLUMN)) {
+        const existing = await this.findByIdempotencyKey(idempotency.key);
+        if (existing) return { outcome: 'replayed', ...existing };
       }
       throw error;
     }
@@ -76,9 +79,9 @@ export class PrismaTransactionRepository implements TransactionRepository {
     return record ? toTransactionEntity(record) : null;
   }
 
-  async findByIdempotencyKey(idempotencyKey: string): Promise<Transaction | null> {
+  async findByIdempotencyKey(idempotencyKey: string): Promise<IdempotentTransaction | null> {
     const record = await this.prisma.transaction.findUnique({ where: { idempotencyKey } });
-    return record ? toTransactionEntity(record) : null;
+    return record ? toIdempotentTransaction(record) : null;
   }
 
   async list(filters: ListTransactionsFilters): Promise<ListTransactionsResult> {

@@ -13,6 +13,10 @@ describe('idempotencyKeySchema', () => {
     );
   });
 
+  it('rejects an empty header', () => {
+    expect(idempotencyKeySchema.safeParse('').success).toBe(false);
+  });
+
   it(`rejects strings longer than ${IDEMPOTENCY_KEY_MAX_LENGTH} chars`, () => {
     const tooLong = 'a'.repeat(IDEMPOTENCY_KEY_MAX_LENGTH + 1);
     expect(idempotencyKeySchema.safeParse(tooLong).success).toBe(false);

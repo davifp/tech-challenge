@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { buildCommand, buildRepositories } from '../../../test/helpers/create-transaction.fixtures';
 import { PENDING_STATUS_ID } from '../../domain/transaction/transaction-status';
 import { TransferTypeNotFoundError } from '../errors/transfer-type-not-found.error';
 
-import { buildCommand, buildRepositories } from './create-transaction.fixtures';
 import { CreateTransactionUseCase } from './create-transaction.use-case';
 
 describe('CreateTransactionUseCase (create flow)', () => {

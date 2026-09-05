@@ -17,9 +17,26 @@ export type ListTransactionsResult = {
   total: number;
 };
 
+export type TransactionIdempotency = {
+  key: string;
+  bodyHash: string;
+};
+
+export type IdempotentTransaction = {
+  transaction: Transaction;
+  bodyHash: string;
+};
+
+export type SaveTransactionResult =
+  | { outcome: 'created'; transaction: Transaction }
+  | { outcome: 'replayed'; transaction: Transaction; bodyHash: string };
+
 export interface TransactionRepository {
-  save(transaction: Transaction, idempotencyKey?: string): Promise<Transaction>;
+  save(
+    transaction: Transaction,
+    idempotency?: TransactionIdempotency,
+  ): Promise<SaveTransactionResult>;
   findByExternalId(externalId: string): Promise<Transaction | null>;
-  findByIdempotencyKey(idempotencyKey: string): Promise<Transaction | null>;
+  findByIdempotencyKey(idempotencyKey: string): Promise<IdempotentTransaction | null>;
   list(filters: ListTransactionsFilters): Promise<ListTransactionsResult>;
 }

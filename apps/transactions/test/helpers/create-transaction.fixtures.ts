@@ -2,12 +2,14 @@ import { randomUUID } from 'node:crypto';
 
 import { vi } from 'vitest';
 
-import { type Transaction } from '../../domain/transaction/transaction';
-import { TRANSFER_TYPE_ID } from '../../domain/transaction/transaction-type';
-import { type TransactionCatalogRepository } from '../ports/transaction-catalog-repository.port';
-import { type TransactionRepository } from '../ports/transaction-repository.port';
-
-import { type CreateTransactionCommand } from './create-transaction.use-case';
+import { type TransactionCatalogRepository } from '../../src/application/ports/transaction-catalog-repository.port';
+import {
+  type SaveTransactionResult,
+  type TransactionRepository,
+} from '../../src/application/ports/transaction-repository.port';
+import { type CreateTransactionCommand } from '../../src/application/use-cases/create-transaction.use-case';
+import { type Transaction } from '../../src/domain/transaction/transaction';
+import { TRANSFER_TYPE_ID } from '../../src/domain/transaction/transaction-type';
 
 export function buildCommand(
   overrides: Partial<CreateTransactionCommand> = {},
@@ -27,7 +29,10 @@ export function buildRepositories(): {
 } {
   return {
     transactionRepository: {
-      save: vi.fn(async (transaction: Transaction) => transaction),
+      save: vi.fn(async (transaction: Transaction): Promise<SaveTransactionResult> => ({
+        outcome: 'created',
+        transaction,
+      })),
       findByExternalId: vi.fn(),
       findByIdempotencyKey: vi.fn().mockResolvedValue(null),
       list: vi.fn(),

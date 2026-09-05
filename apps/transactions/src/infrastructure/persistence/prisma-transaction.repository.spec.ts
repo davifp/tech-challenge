@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { hashBody } from '../../application/helpers/hash-body';
 import { Transaction } from '../../domain/transaction/transaction';
 import { TRANSFER_TYPE_ID } from '../../domain/transaction/transaction-type';
 import { Prisma } from '../../generated/prisma/client';
@@ -29,23 +30,29 @@ function buildPrisma(): PrismaService {
   } as unknown as PrismaService;
 }
 
-function knownRequestError(target: string[] | string, code = 'P2002'): unknown {
+function knownRequestError(meta: Record<string, unknown>, code = 'P2002'): unknown {
   return new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
     code,
     clientVersion: CLIENT_VERSION,
-    meta: { target },
+    meta,
   });
+}
+
+function idempotencyFor(transaction: Transaction): { key: string; bodyHash: string } {
+  return { key: 'idem-1', bodyHash: hashBody(transaction) };
 }
 
 describe('PrismaTransactionRepository.save', () => {
   it('returns the existing transaction when Prisma raises P2002 on idempotencyKey', async () => {
     const prisma = buildPrisma();
     const existing = buildTransaction();
-    vi.mocked(prisma.transaction.create).mockRejectedValue(knownRequestError(['idempotencyKey']));
+    vi.mocked(prisma.transaction.create).mockRejectedValue(
+      knownRequestError({ target: ['idempotencyKey'] }),
+    );
     vi.mocked(prisma.transaction.findUnique).mockResolvedValue({
       transactionExternalId: existing.transactionExternalId,
       idempotencyKey: 'idem-1',
-      bodyHash: null,
+      bodyHash: hashBody(existing),
       accountExternalIdDebit: existing.accountExternalIdDebit,
       accountExternalIdCredit: existing.accountExternalIdCredit,
       value: new Prisma.Decimal(existing.value),
@@ -55,8 +62,12 @@ describe('PrismaTransactionRepository.save', () => {
       updatedAt: existing.updatedAt,
     } as never);
     const repository = new PrismaTransactionRepository(prisma);
-    const result = await repository.save(buildTransaction(), 'idem-1');
-    expect(result.transactionExternalId).toBe(existing.transactionExternalId);
+    const result = await repository.save(buildTransaction(), idempotencyFor(existing));
+    expect(result).toMatchObject({
+      outcome: 'replayed',
+      transaction: { transactionExternalId: existing.transactionExternalId },
+      bodyHash: hashBody(existing),
+    });
     expect(prisma.transaction.findUnique).toHaveBeenCalledWith({
       where: { idempotencyKey: 'idem-1' },
     });
@@ -65,10 +76,11 @@ describe('PrismaTransactionRepository.save', () => {
   it('propagates P2002 on a different column', async () => {
     const prisma = buildPrisma();
     vi.mocked(prisma.transaction.create).mockRejectedValue(
-      knownRequestError(['transactionExternalId']),
+      knownRequestError({ target: ['transactionExternalId'] }),
     );
     const repository = new PrismaTransactionRepository(prisma);
-    await expect(repository.save(buildTransaction(), 'idem-1')).rejects.toBeInstanceOf(
+    const transaction = buildTransaction();
+    await expect(repository.save(transaction, idempotencyFor(transaction))).rejects.toBeInstanceOf(
       Prisma.PrismaClientKnownRequestError,
     );
   });
@@ -77,6 +89,7 @@ describe('PrismaTransactionRepository.save', () => {
     const prisma = buildPrisma();
     vi.mocked(prisma.transaction.create).mockRejectedValue(new Error('boom'));
     const repository = new PrismaTransactionRepository(prisma);
-    await expect(repository.save(buildTransaction(), 'idem-1')).rejects.toThrow('boom');
+    const transaction = buildTransaction();
+    await expect(repository.save(transaction, idempotencyFor(transaction))).rejects.toThrow('boom');
   });
 });
