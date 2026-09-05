@@ -19,7 +19,7 @@ import { TransactionsController } from './infrastructure/http/transactions.contr
 import { PrismaTransactionCatalogRepository } from './infrastructure/persistence/prisma-transaction-catalog.repository';
 import { PrismaTransactionEventStore } from './infrastructure/persistence/prisma-transaction-event.store';
 import { PrismaTransactionRepository } from './infrastructure/persistence/prisma-transaction.repository';
-import { PrismaService } from './infrastructure/persistence/prisma.service';
+import { OutboxDispatcherModule } from './outbox-dispatcher.module';
 
 const repositoryProviders: Provider[] = [
   { provide: TRANSACTION_EVENT_STORE, useClass: PrismaTransactionEventStore },
@@ -48,7 +48,8 @@ const useCaseProviders: Provider[] = [
 ];
 
 @Module({
+  imports: [OutboxDispatcherModule],
   controllers: [TransactionsController],
-  providers: [PrismaService, ...repositoryProviders, ...useCaseProviders],
+  providers: [...repositoryProviders, ...useCaseProviders],
 })
 export class TransactionsModule {}
