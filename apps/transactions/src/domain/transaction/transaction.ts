@@ -2,10 +2,12 @@ import { v7 as uuidv7 } from 'uuid';
 
 import { InvalidTransactionError } from '../errors/invalid-transaction.error';
 
+import { normalizeAccountExternalId } from './normalize-account-external-id';
 import { PENDING_STATUS_ID, type TransactionStatusId } from './transaction-status';
 import { type TransactionTypeId } from './transaction-type';
 
 const MIN_VALUE = 0;
+const DECIMAL_SCALE = 2;
 
 export type CreatePendingTransactionInput = {
   accountExternalIdDebit: string;
@@ -45,14 +47,12 @@ export class Transaction implements TransactionProps {
   }
 
   static createPending(input: CreatePendingTransactionInput): Transaction {
-    Transaction.assertInvariants(input);
+    const normalizedInput = Transaction.normalizeAccounts(input);
+    Transaction.assertInvariants(normalizedInput);
     const now = new Date();
     const props = {
       transactionExternalId: uuidv7(),
-      accountExternalIdDebit: input.accountExternalIdDebit,
-      accountExternalIdCredit: input.accountExternalIdCredit,
-      value: input.value,
-      transferTypeId: input.transferTypeId,
+      ...normalizedInput,
       transactionStatusId: PENDING_STATUS_ID,
       createdAt: now,
       updatedAt: now,
@@ -61,18 +61,30 @@ export class Transaction implements TransactionProps {
   }
 
   static reconstitute(props: TransactionProps): Transaction {
-    Transaction.assertInvariants(props);
-    return new Transaction(props);
+    const normalizedProps = Transaction.normalizeAccounts(props);
+    Transaction.assertInvariants(normalizedProps);
+    return new Transaction(normalizedProps);
   }
 
   private static assertInvariants(fields: InvariantFields): void {
-    if (fields.value <= MIN_VALUE) {
+    if (!Number.isFinite(fields.value) || fields.value <= MIN_VALUE) {
       throw new InvalidTransactionError('value must be greater than 0');
+    }
+    if (fields.value !== Number(fields.value.toFixed(DECIMAL_SCALE))) {
+      throw new InvalidTransactionError('value must have up to two decimals');
     }
     if (fields.accountExternalIdDebit === fields.accountExternalIdCredit) {
       throw new InvalidTransactionError(
         'accountExternalIdDebit must be different from accountExternalIdCredit',
       );
     }
+  }
+
+  private static normalizeAccounts<T extends InvariantFields>(fields: T): T {
+    return {
+      ...fields,
+      accountExternalIdDebit: normalizeAccountExternalId(fields.accountExternalIdDebit),
+      accountExternalIdCredit: normalizeAccountExternalId(fields.accountExternalIdCredit),
+    };
   }
 }

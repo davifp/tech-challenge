@@ -17,9 +17,13 @@ export const createTransactionSchema = z
       .positive()
       .refine(hasAtMostTwoDecimals, { message: 'must have up to two decimals' }),
   })
-  .refine((data) => data.accountExternalIdDebit !== data.accountExternalIdCredit, {
-    message: 'accountExternalIdDebit must be different from accountExternalIdCredit',
-    path: ['accountExternalIdCredit'],
-  });
+  .refine(
+    (data) =>
+      data.accountExternalIdDebit.toLowerCase() !== data.accountExternalIdCredit.toLowerCase(),
+    {
+      message: 'accountExternalIdDebit must be different from accountExternalIdCredit',
+      path: ['accountExternalIdCredit'],
+    },
+  );
 
 export class CreateTransactionDto extends createZodDto(createTransactionSchema) {}

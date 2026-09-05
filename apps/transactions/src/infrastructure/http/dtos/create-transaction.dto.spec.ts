@@ -53,6 +53,17 @@ describe('createTransactionSchema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('rejects equal account UUIDs with different casing', () => {
+    const same = randomUUID();
+    const result = createTransactionSchema.safeParse(
+      baseBody({
+        accountExternalIdDebit: same.toLowerCase(),
+        accountExternalIdCredit: same.toUpperCase(),
+      }),
+    );
+    expect(result.success).toBe(false);
+  });
+
   it('rejects unknown fields (strict)', () => {
     expect(createTransactionSchema.safeParse(baseBody({ extra: 'nope' })).success).toBe(false);
   });
