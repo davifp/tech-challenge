@@ -1,3 +1,8 @@
+import { randomUUID } from 'node:crypto';
+
+import { type INestApplication } from '@nestjs/common';
+import request, { type Test } from 'supertest';
+
 export type CreateTransactionBody = {
   accountExternalIdDebit: string;
   accountExternalIdCredit: string;
@@ -5,23 +10,26 @@ export type CreateTransactionBody = {
   value: number;
 };
 
-export function postTransaction(
-  baseUrl: string,
-  body: CreateTransactionBody,
-  idempotencyKey?: string,
-): Promise<Response> {
-  return fetch(`${baseUrl}/transactions`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
-    },
-    body: JSON.stringify(body),
-  });
+export function buildTransactionBody(value = 120): CreateTransactionBody {
+  return {
+    accountExternalIdDebit: randomUUID(),
+    accountExternalIdCredit: randomUUID(),
+    transferTypeId: 1,
+    value,
+  };
 }
 
-export async function transactionExternalId(response: Response): Promise<string> {
-  const payload: unknown = await response.json();
+export function postTransaction(
+  app: INestApplication,
+  body: CreateTransactionBody,
+  idempotencyKey?: string,
+): Test {
+  const test = request(app.getHttpServer()).post('/transactions').send(body);
+  return idempotencyKey ? test.set('Idempotency-Key', idempotencyKey) : test;
+}
+
+export function transactionExternalId(response: { body: unknown }): string {
+  const payload = response.body;
   if (!payload || typeof payload !== 'object' || !('transactionExternalId' in payload)) {
     throw new Error('Transaction response does not include transactionExternalId');
   }

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { prismaTest } from '../helpers/prisma-test';
@@ -19,7 +20,7 @@ describe('transactions HTTP validation', () => {
 
   it('rejects equal account UUIDs with different casing without persisting', async () => {
     const account = randomUUID();
-    const response = await postTransaction(testApp.baseUrl, {
+    const response = await postTransaction(testApp.app, {
       accountExternalIdDebit: account.toLowerCase(),
       accountExternalIdCredit: account.toUpperCase(),
       transferTypeId: 1,
@@ -30,17 +31,19 @@ describe('transactions HTTP validation', () => {
   });
 
   it('rejects a transfer type absent from the catalog', async () => {
-    const response = await fetch(`${testApp.baseUrl}/transactions?transferTypeId=999`);
+    const response = await request(testApp.app.getHttpServer())
+      .get('/transactions')
+      .query({ transferTypeId: 999 });
     expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toMatchObject({
+    expect(response.body).toMatchObject({
       error: { code: 'TRANSFER_TYPE_NOT_FOUND' },
     });
   });
 
   it('rejects a malformed transaction UUID before querying PostgreSQL', async () => {
-    const response = await fetch(`${testApp.baseUrl}/transactions/not-a-uuid`);
+    const response = await request(testApp.app.getHttpServer()).get('/transactions/not-a-uuid');
     expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toMatchObject({
+    expect(response.body).toMatchObject({
       error: { code: 'VALIDATION_ERROR' },
     });
   });

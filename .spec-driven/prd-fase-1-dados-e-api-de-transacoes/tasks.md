@@ -10,5 +10,5 @@
 - [x] 6.0 Adapter Prisma: repositórios de Transaction e Catalog
 - [x] 7.0 Wiring dos módulos e publicação da spec OpenAPI
 - [x] 8.0 Setup de testes de integração e factory helper
-- [ ] 9.0 Testes de integração HTTP fim a fim
+- [x] 9.0 Testes de integração HTTP fim a fim
 - [ ] 10.0 DECISIONS.md e quality gate final
