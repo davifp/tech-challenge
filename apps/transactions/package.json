@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "nest start --watch",
+    "generate": "prisma generate",
     "build": "nest build",
     "start": "node dist/main.js",
     "lint": "eslint .",

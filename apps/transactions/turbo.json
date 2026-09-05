@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/turbo/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "generate"],
+      "outputs": ["dist/**"]
+    },
+    "generate": {
+      "env": ["DATABASE_URL"],
+      "outputs": ["src/generated/prisma/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck", "generate"]
+    },
+    "test": {
+      "dependsOn": ["^build", "generate"],
+      "env": ["DATABASE_URL", "DATABASE_URL_TEST"]
+    }
+  }
+}
