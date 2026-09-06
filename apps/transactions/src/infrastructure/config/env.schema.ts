@@ -9,6 +9,10 @@ const DEFAULT_KAFKA_CONNECTION_TIMEOUT_MS = 3000;
 const DEFAULT_KAFKA_REQUEST_TIMEOUT_MS = 30000;
 const DEFAULT_KAFKA_RETRY_INITIAL_TIME_MS = 300;
 const DEFAULT_KAFKA_RETRY_COUNT = 5;
+const DEFAULT_KAFKA_SESSION_TIMEOUT_MS = 30000;
+const DEFAULT_KAFKA_CONSUMER_MAX_ATTEMPTS = 3;
+const DEFAULT_KAFKA_CONSUMER_RETRY_DELAY_MS = 300;
+const MAX_KAFKA_CONSUMER_ATTEMPTS = 3;
 const DEFAULT_OUTBOX_POLL_INTERVAL_MS = 1000;
 const DEFAULT_OUTBOX_BATCH_SIZE = 50;
 const DEFAULT_OUTBOX_RETRY_BASE_DELAY_MS = 1000;
@@ -59,6 +63,15 @@ export const envSchema = z
     KAFKA_REQUEST_TIMEOUT_MS: positiveInteger(DEFAULT_KAFKA_REQUEST_TIMEOUT_MS),
     KAFKA_RETRY_INITIAL_TIME_MS: positiveInteger(DEFAULT_KAFKA_RETRY_INITIAL_TIME_MS),
     KAFKA_RETRY_COUNT: nonNegativeInteger(DEFAULT_KAFKA_RETRY_COUNT),
+    KAFKA_SESSION_TIMEOUT_MS: positiveInteger(DEFAULT_KAFKA_SESSION_TIMEOUT_MS),
+    KAFKA_CONSUMER_MAX_ATTEMPTS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(MAX_KAFKA_CONSUMER_ATTEMPTS)
+      .default(DEFAULT_KAFKA_CONSUMER_MAX_ATTEMPTS),
+    KAFKA_CONSUMER_RETRY_DELAY_MS: positiveInteger(DEFAULT_KAFKA_CONSUMER_RETRY_DELAY_MS),
+    KAFKA_CONSUMER_ENABLED: optionalBooleanSchema,
     OUTBOX_DISPATCH_ENABLED: optionalBooleanSchema,
     OUTBOX_POLL_INTERVAL_MS: positiveInteger(DEFAULT_OUTBOX_POLL_INTERVAL_MS),
     OUTBOX_BATCH_SIZE: positiveInteger(DEFAULT_OUTBOX_BATCH_SIZE),
@@ -71,6 +84,13 @@ export const envSchema = z
         code: 'custom',
         path: ['DATABASE_URL_TEST'],
         message: 'is required when NODE_ENV=test',
+      });
+    }
+    if (data.KAFKA_CONSUMER_RETRY_DELAY_MS >= data.KAFKA_SESSION_TIMEOUT_MS) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['KAFKA_CONSUMER_RETRY_DELAY_MS'],
+        message: 'must be shorter than KAFKA_SESSION_TIMEOUT_MS',
       });
     }
   });

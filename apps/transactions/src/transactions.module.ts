@@ -26,6 +26,7 @@ import { PrismaTransactionDecisionStore } from './infrastructure/persistence/pri
 import { PrismaTransactionEventStore } from './infrastructure/persistence/prisma-transaction-event.store';
 import { PrismaTransactionRepository } from './infrastructure/persistence/prisma-transaction.repository';
 import { OutboxDispatcherModule } from './outbox-dispatcher.module';
+import { transactionStatusConsumerProviders } from './transaction-status-consumer.providers';
 
 const repositoryProviders: Provider[] = [
   { provide: TRANSACTION_DECISION_STORE, useClass: PrismaTransactionDecisionStore },
@@ -62,6 +63,6 @@ const useCaseProviders: Provider[] = [
 @Module({
   imports: [OutboxDispatcherModule],
   controllers: [TransactionsController],
-  providers: [...repositoryProviders, ...useCaseProviders],
+  providers: [...repositoryProviders, ...useCaseProviders, ...transactionStatusConsumerProviders],
 })
 export class TransactionsModule {}

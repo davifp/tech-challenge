@@ -8,5 +8,5 @@
 - [x] 4.0 Domínio e aplicação do serviço anti-fraud
 - [x] 5.0 Fluxo Kafka do serviço anti-fraud
 - [x] 6.0 Transição de status e inbox atômica em transactions
-- [ ] 7.0 Consumer de atualização de status em transactions
+- [x] 7.0 Consumer de atualização de status em transactions
 - [ ] 8.0 Integração ponta a ponta, CI e quality gate
