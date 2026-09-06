@@ -1,10 +1,12 @@
 import { z } from 'zod';
 
 const DEFAULT_TRANSACTIONS_PORT = 3001;
+const DEFAULT_DASHBOARD_ORIGIN = 'http://localhost:3000';
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
 const TEST_NODE_ENV = 'test';
 const POSTGRES_PROTOCOL_PATTERN = /^postgres(ql)?$/;
+const HTTP_PROTOCOL_PATTERN = /^https?$/;
 const DEFAULT_KAFKA_CONNECTION_TIMEOUT_MS = 3000;
 const DEFAULT_KAFKA_REQUEST_TIMEOUT_MS = 30000;
 const DEFAULT_KAFKA_RETRY_INITIAL_TIME_MS = 300;
@@ -24,6 +26,15 @@ const postgresUrlSchema = z.url({
   protocol: POSTGRES_PROTOCOL_PATTERN,
   error: 'must be a Postgres URL (postgres:// or postgresql://)',
 });
+
+const dashboardOriginSchema = z
+  .url({ protocol: HTTP_PROTOCOL_PATTERN })
+  .refine((value) => {
+    const url = new URL(value);
+    return url.pathname === '/' && !url.search && !url.hash && !url.username && !url.password;
+  }, 'must be an HTTP(S) origin without credentials')
+  .transform((value) => new URL(value).origin)
+  .default(DEFAULT_DASHBOARD_ORIGIN);
 
 const portSchema = z.coerce
   .number()
@@ -56,6 +67,7 @@ export const envSchema = z
     DATABASE_URL: postgresUrlSchema,
     DATABASE_URL_TEST: postgresUrlSchema.optional(),
     TRANSACTIONS_PORT: portSchema,
+    DASHBOARD_ORIGIN: dashboardOriginSchema,
     KAFKA_BROKERS: brokersSchema,
     KAFKA_CLIENT_ID: nonEmptyString,
     KAFKA_GROUP_ID_TRANSACTIONS: nonEmptyString,

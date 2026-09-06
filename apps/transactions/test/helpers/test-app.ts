@@ -1,11 +1,14 @@
 import './load-env';
 import { type INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 
 import {
   TRANSACTION_REPOSITORY,
   type TransactionRepository,
 } from '../../src/application/ports/transaction-repository.port';
+import { type Env } from '../../src/infrastructure/config/env.schema';
+import { enableDashboardCors } from '../../src/infrastructure/http/dashboard-cors';
 
 export type TransactionsTestApp = {
   app: INestApplication;
@@ -41,6 +44,8 @@ export async function createTransactionsTestApp(
   const builder = Test.createTestingModule({ imports: [AppModule] });
   const moduleRef = await applyOverrides(builder, options).compile();
   const app = moduleRef.createNestApplication({ logger: false });
+  const config = app.get<ConfigService<Env, true>>(ConfigService);
+  enableDashboardCors(app, config.get('DASHBOARD_ORIGIN', { infer: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   await app.init();
   return { app };

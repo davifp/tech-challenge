@@ -17,6 +17,18 @@ describe('transactions environment validation', () => {
     expect(env.KAFKA_SESSION_TIMEOUT_MS).toBe(30000);
     expect(env.KAFKA_CONSUMER_MAX_ATTEMPTS).toBe(3);
     expect(env.KAFKA_CONSUMER_RETRY_DELAY_MS).toBe(300);
+    expect(env.DASHBOARD_ORIGIN).toBe('http://localhost:3000');
+  });
+
+  it('accepts a configured dashboard origin for CORS', () => {
+    const env = validateEnv({ ...validEnvironment, DASHBOARD_ORIGIN: 'https://dashboard.test/' });
+    expect(env.DASHBOARD_ORIGIN).toBe('https://dashboard.test');
+  });
+
+  it('rejects a dashboard URL containing a path', () => {
+    expect(() =>
+      validateEnv({ ...validEnvironment, DASHBOARD_ORIGIN: 'https://dashboard.test/path' }),
+    ).toThrow('DASHBOARD_ORIGIN');
   });
 
   it('rejects more attempts than the bounded retry policy supports', () => {

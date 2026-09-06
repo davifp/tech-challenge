@@ -7,6 +7,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import './infrastructure/config/env.loader';
 import { type Env } from './infrastructure/config/env.schema';
+import { enableDashboardCors } from './infrastructure/http/dashboard-cors';
 import { HttpExceptionFilter } from './infrastructure/http/filters/http-exception.filter';
 
 const OPENAPI_DOCS_PATH = 'api/docs';
@@ -33,6 +34,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new HttpExceptionFilter());
   setupOpenApi(app);
   const config = app.get<ConfigService<Env, true>>(ConfigService);
+  enableDashboardCors(app, config.get('DASHBOARD_ORIGIN', { infer: true }));
   await app.listen(config.get('TRANSACTIONS_PORT', { infer: true }));
 }
 
