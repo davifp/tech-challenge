@@ -19,6 +19,7 @@ model Transaction {
   transferType            TransactionType   @relation(fields: [transferTypeId], references: [id])
   transactionStatusId     Int
   transactionStatus       TransactionStatus @relation(fields: [transactionStatusId], references: [id])
+  inboxEvents             InboxEvent[]
   outboxEvents            OutboxEvent[]
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
@@ -26,6 +27,16 @@ model Transaction {
   @@index([createdAt(sort: Desc)])
   @@index([transactionStatusId, createdAt(sort: Desc)])
   @@index([transferTypeId, createdAt(sort: Desc)])
+}
+
+model InboxEvent {
+  eventId               String      @id @db.Uuid
+  eventName             String      @db.VarChar(128)
+  transactionExternalId String      @db.Uuid
+  transaction           Transaction @relation(fields: [transactionExternalId], references: [transactionExternalId])
+  processedAt           DateTime    @default(now())
+
+  @@index([transactionExternalId])
 }
 
 model OutboxEvent {

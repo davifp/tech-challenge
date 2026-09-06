@@ -13,6 +13,7 @@ export type TransactionOverrides = Partial<{
   transactionStatusId: number;
   transferTypeId: number;
   createdAt: Date;
+  updatedAt: Date;
   value: number | string;
   accountExternalIdDebit: string;
   accountExternalIdCredit: string;
@@ -34,6 +35,7 @@ export function createTransaction(
       transferTypeId: overrides.transferTypeId ?? DEFAULT_TRANSFER_TYPE_ID,
       transactionStatusId: overrides.transactionStatusId ?? DEFAULT_STATUS_ID,
       ...(overrides.createdAt && { createdAt: overrides.createdAt }),
+      ...(overrides.updatedAt && { updatedAt: overrides.updatedAt }),
       ...(overrides.idempotencyKey && { idempotencyKey: overrides.idempotencyKey }),
       ...(overrides.bodyHash && { bodyHash: overrides.bodyHash }),
     },
