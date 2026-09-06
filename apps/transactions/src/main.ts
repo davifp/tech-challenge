@@ -5,7 +5,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
-import './infrastructure/config/env.loader';
 import { type Env } from './infrastructure/config/env.schema';
 import { enableDashboardCors } from './infrastructure/http/dashboard-cors';
 import { HttpExceptionFilter } from './infrastructure/http/filters/http-exception.filter';
