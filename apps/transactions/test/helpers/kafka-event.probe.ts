@@ -1,51 +1,41 @@
 import { randomUUID } from 'node:crypto';
 
-import { Kafka, type Consumer, type KafkaMessage } from 'kafkajs';
+import { Kafka, type Consumer, type EachMessagePayload } from 'kafkajs';
 
-const MESSAGE_TIMEOUT_MS = 10000;
+import { KafkaProbeBuffer, type ProbedKafkaMessage } from './kafka-probe-buffer';
 
-export type ProbedKafkaMessage = { key: string; value: string };
-type MessageWaiter = {
-  resolve: (message: ProbedKafkaMessage) => void;
-  timer: ReturnType<typeof setTimeout>;
-};
+export { type ProbedKafkaMessage } from './kafka-probe-buffer';
 
 export class KafkaEventProbe {
   private readonly kafka: Kafka;
   private readonly consumer: Consumer;
-  private readonly messages = new Map<string, ProbedKafkaMessage>();
-  private readonly waiters = new Map<string, MessageWaiter>();
+  private readonly buffer = new KafkaProbeBuffer();
 
-  constructor(input: { brokers: string[]; clientId: string }) {
+  constructor(input: { brokers: string[]; clientId: string; groupId?: string }) {
     this.kafka = new Kafka({ brokers: input.brokers, clientId: input.clientId });
-    this.consumer = this.kafka.consumer({ groupId: `${input.clientId}-${randomUUID()}` });
+    this.consumer = this.kafka.consumer({
+      groupId: input.groupId ?? `${input.clientId}-${randomUUID()}`,
+    });
   }
 
-  async start(topic: string): Promise<void> {
-    await this.ensureTopic(topic);
+  async start(topics: string | string[]): Promise<void> {
+    const subscribedTopics = Array.isArray(topics) ? topics : [topics];
+    await Promise.all(subscribedTopics.map((topic) => this.ensureTopic(topic)));
     await this.consumer.connect();
-    await this.consumer.subscribe({ topic, fromBeginning: true });
-    await this.consumer.run({
-      eachMessage: ({ message }) => {
-        this.capture(message);
-        return Promise.resolve();
-      },
-    });
+    await this.consumer.subscribe({ topics: subscribedTopics, fromBeginning: false });
+    await this.consumer.run({ eachMessage: (payload) => this.capture(payload) });
   }
 
   waitForKey(key: string): Promise<ProbedKafkaMessage> {
-    const existing = this.messages.get(key);
-    if (existing) return Promise.resolve(existing);
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.waiters.delete(key);
-        reject(new Error(`Kafka message not received for key ${key}`));
-      }, MESSAGE_TIMEOUT_MS);
-      this.waiters.set(key, { resolve, timer });
-    });
+    return this.waitFor('', key, 1);
+  }
+
+  waitFor(topic: string, key: string, occurrence = 1): Promise<ProbedKafkaMessage> {
+    return this.buffer.waitFor(topic, key, occurrence);
   }
 
   async disconnect(): Promise<void> {
+    this.buffer.rejectWaiters();
     await this.consumer.disconnect();
   }
 
@@ -62,14 +52,17 @@ export class KafkaEventProbe {
     }
   }
 
-  private capture(message: KafkaMessage): void {
-    if (!message.key || !message.value) return;
-    const received = { key: message.key.toString(), value: message.value.toString() };
-    this.messages.set(received.key, received);
-    const waiter = this.waiters.get(received.key);
-    if (!waiter) return;
-    clearTimeout(waiter.timer);
-    this.waiters.delete(received.key);
-    waiter.resolve(received);
+  private capture(payload: EachMessagePayload): Promise<void> {
+    const { message } = payload;
+    if (!message.key || !message.value) return Promise.resolve();
+    const received = {
+      topic: payload.topic,
+      key: message.key.toString(),
+      value: message.value.toString(),
+      partition: payload.partition,
+      offset: message.offset,
+    };
+    this.buffer.capture(payload.topic, received);
+    return Promise.resolve();
   }
 }
