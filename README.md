@@ -62,6 +62,31 @@ docker compose down         # derruba (mantém volumes)
 docker compose down -v      # derruba e apaga dados
 ```
 
+## Evidência operacional do fluxo antifraude
+
+Com a infraestrutura saudável, inicie `transactions` e `anti-fraud` em terminais separados:
+
+```bash
+pnpm --filter @tech-challenge/transactions dev
+pnpm --filter @tech-challenge/anti-fraud dev
+```
+
+Crie uma transação e use o identificador retornado para acompanhar a decisão eventual:
+
+```bash
+curl -sS -X POST http://localhost:3001/transactions \
+  -H 'Content-Type: application/json' \
+  -d '{"accountExternalIdDebit":"0199f9c2-1a2b-7c8d-9e0f-1234567890ab","accountExternalIdCredit":"0299f9c2-1a2b-7c8d-9e0f-1234567890ab","transferTypeId":1,"value":1000}'
+
+curl -sS http://localhost:3001/transactions/<transactionExternalId>
+```
+
+No [Kafka UI](http://localhost:8080), abra o cluster `challenge` e inspecione os tópicos
+`transaction.created` e `transaction.status.updated`. Ambos usam `transactionExternalId` como key e
+correlação. Os logs JSON dos serviços registram `eventName`, `eventId`, `transactionExternalId`,
+`correlationId`, tópico, partição, offset e `outcome`, permitindo seguir publicação, consumo,
+duplicidade, retry e DLQ sem expor o payload ou credenciais.
+
 ## Referências
 
 - [`PRACTICES.md`](./PRACTICES.md): práticas obrigatórias (quality gate, CI, commits, branches, PRs, testes, decisões).
