@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { DashboardShell } from './dashboard-shell';
-import './globals.css';
-import { Providers } from './providers';
+import { DashboardShell } from '@/components/shared/dashboard-shell';
+import { Providers } from '@/components/shared/providers';
+import '@/styles/globals.css';
 
 export const metadata = {
   title: 'BIUD · Dashboard',
