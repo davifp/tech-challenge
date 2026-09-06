@@ -10,17 +10,18 @@ Desafio técnico BIUD fullstack: API orientada a eventos para transações finan
 
 Invoque as skills via `/<nome-da-skill>` antes de planejar, implementar ou revisar.
 
-| Skill / recurso | Use para… | Não use se… |
-| --- | --- | --- |
-| `vercel-react-best-practices` | Next.js App Router: RSC, Server Actions, streaming, `next/image`, Suspense, otimização de bundle | Tarefa fora de React/Next.js |
-| `web-design-guidelines` | Auditar UI contra guidelines: acessibilidade, semântica, estados de loading/vazio/erro | Tarefa puramente backend/API sem UI |
-| **Context7 MCP** | Consultar docs oficiais de qualquer lib (NestJS, Prisma, kafkajs, TanStack Query, Testing Library, Vitest, Next.js, Tailwind, Zod, etc.) — sempre que precisar de sintaxe ou config | Refatoração pura, lógica de negócio, ou conceito genérico de programação |
+| Skill / recurso               | Use para…                                                                                                                                                                                    | Não use se…                                                              |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `vercel-react-best-practices` | Next.js App Router: RSC, Server Actions, streaming, `next/image`, Suspense, otimização de bundle                                                                                             | Tarefa fora de React/Next.js                                             |
+| `frontend-design`             | Criar/redesenhar composição de tela e componentes aplicando os tokens de `.spec-driven/DESIGN.md`, evitando estética genérica de IA (cards inflados, paddings excessivos, hierarquia frouxa) | Ajuste pontual de estilo sem mudança de composição ou tarefa não visual  |
+| `web-design-guidelines`       | Auditar UI contra guidelines: acessibilidade, semântica, estados de loading/vazio/erro                                                                                                       | Tarefa puramente backend/API sem UI                                      |
+| **Context7 MCP**              | Consultar docs oficiais de qualquer lib (NestJS, Prisma, kafkajs, TanStack Query, Testing Library, Vitest, Next.js, Tailwind, Zod, etc.) — sempre que precisar de sintaxe ou config          | Refatoração pura, lógica de negócio, ou conceito genérico de programação |
 
 # Ordem sugerida por tipo de tarefa
 
 - **Backend (NestJS: endpoints, use-cases, Prisma):** **Context7 MCP** (NestJS/Prisma) → aplicar `.claude/rules/code-standards.md` → testes com Context7 (Vitest/Jest).
 - **Kafka (produção e consumo de eventos):** **Context7 MCP** (`kafkajs` / `@nestjs/microservices`) → cuidar de idempotência, DLQ e retries → registrar decisão em `DECISIONS.md`.
-- **Frontend (Next.js + Tailwind: páginas, listagem, formulário, detalhe):** `vercel-react-best-practices` → **Context7 MCP** (Next.js/Tailwind/TanStack Query) → validar UI no navegador → auditar com `web-design-guidelines`.
+- **Frontend (Next.js + Tailwind: páginas, listagem, formulário, detalhe):** `frontend-design` (aplicar tokens de `.spec-driven/DESIGN.md`) → `vercel-react-best-practices` → **Context7 MCP** (Next.js/Tailwind/TanStack Query) → validar UI no navegador → auditar com `web-design-guidelines`.
 - **Testes:** **Context7 MCP** (Vitest/Testing Library/Playwright) — testes de **comportamento**, não de implementação; `getByRole` antes de `data-testid` (ver `PRACTICES.md`).
 
 # Restrições sempre em vigor
