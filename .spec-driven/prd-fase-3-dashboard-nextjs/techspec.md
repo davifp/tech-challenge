@@ -12,15 +12,16 @@ Bases: enunciado original (`0bb0f17`), [ARCHITECTURE.md](../../ARCHITECTURE.md),
 
 Fluxo: tela → TanStack Query → cliente HTTP → API `transactions`.
 
-| Componente em `apps/web/`                                                                                  | Responsabilidade                                                                                               |
-| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `app/layout.tsx`, `app/providers.tsx`                                                                      | Shell servidor; QueryClient por instância, sem singleton mutável no servidor.                                  |
-| `app/page.tsx`                                                                                             | Redirecionar para `/transactions`.                                                                             |
-| `app/transactions/{page,loading}.tsx`, `new/page.tsx`, `[transactionExternalId]/page.tsx`                  | Compor listagem, criação e detalhe; resolver parâmetros assíncronos do Next.                                   |
-| `app/error.tsx`                                                                                            | Recuperar exceções inesperadas de renderização.                                                                |
-| `features/transactions/screens/`, `components/`                                                            | Telas, filtros, formulário, tabela, paginação, status e feedback; receber parâmetros e callbacks de navegação. |
-| `features/transactions/{contracts,queries,transactions-api,submission-attempt,presentation,date-range}.ts` | Contratos, consultas, transporte, tentativa de criação e transformações puras.                                 |
-| `next.config.mjs`, `postcss.config.mjs`, `app/globals.css`                                                 | Ambiente público do cliente e Tailwind.                                                                        |
+| Componente em `apps/web/`                                                                                      | Responsabilidade                                                                                               |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `src/app/layout.tsx`                                                                                           | Root Layout servidor e composição dos elementos compartilhados.                                                |
+| `src/components/shared/{dashboard-shell,providers}.tsx`                                                        | Shell global e QueryClient por instância, sem singleton mutável no servidor.                                   |
+| `src/app/page.tsx`                                                                                             | Redirecionar para `/transactions`.                                                                             |
+| `src/app/transactions/{page,loading}.tsx`, `new/page.tsx`, `[transactionExternalId]/page.tsx`                  | Compor listagem, criação e detalhe; resolver parâmetros assíncronos do Next.                                   |
+| `src/app/error.tsx`                                                                                            | Recuperar exceções inesperadas de renderização.                                                                |
+| `src/features/transactions/screens/`, `components/`                                                            | Telas, filtros, formulário, tabela, paginação, status e feedback; receber parâmetros e callbacks de navegação. |
+| `src/features/transactions/{contracts,queries,transactions-api,submission-attempt,presentation,date-range}.ts` | Contratos, consultas, transporte, tentativa de criação e transformações puras.                                 |
+| `next.config.mjs`, `postcss.config.mjs`, `src/styles/globals.css`                                              | Ambiente público do cliente e Tailwind.                                                                        |
 
 Páginas e layout permanecem Server Components; providers e interação usam fronteiras cliente. A listagem envolve o adaptador de URL em [Suspense](https://nextjs.org/docs/app/api-reference/functions/use-search-params#static-rendering). A API é consultada no cliente: build e shell não dependem de sua disponibilidade.
 
@@ -339,4 +340,4 @@ Lidos `AGENTS.md` → `CLAUDE.md`, `PRACTICES.md` e todas as rules de `.agents/r
 
 ### Arquivos relevantes e dependentes
 
-Além dos componentes listados: `apps/web/package.json`, `vitest.config.ts`, `app/page.test.tsx`, `test/`, `.env.example`, `.github/workflows/quality.yml`, `pnpm-lock.yaml`, `DECISIONS.md`, `README.md` e `ARCHITECTURE.md`. Referências de contrato: `apps/transactions/src/infrastructure/http/{dtos,filters,mappers,transactions.controller.ts}` e testes HTTP existentes. Atualizar a arquitetura descritiva após implementar os componentes.
+Além dos componentes listados: `apps/web/package.json`, `vitest.config.ts`, `src/app/page.test.tsx`, `test/`, `.env.example`, `.github/workflows/quality.yml`, `pnpm-lock.yaml`, `DECISIONS.md`, `README.md` e `ARCHITECTURE.md`. Referências de contrato: `apps/transactions/src/infrastructure/http/{dtos,filters,mappers,transactions.controller.ts}` e testes HTTP existentes. Atualizar a arquitetura descritiva após implementar os componentes.
