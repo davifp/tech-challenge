@@ -1,13 +1,14 @@
+import { ConsoleLogger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
-
-const DEFAULT_PORT = 3002;
+import './infrastructure/config/env.loader';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
-  const port = Number(process.env.ANTI_FRAUD_PORT ?? DEFAULT_PORT);
-  await app.listen(port);
+  const app = await NestFactory.createApplicationContext(AppModule, {
+    logger: new ConsoleLogger({ json: true }),
+  });
+  app.enableShutdownHooks();
 }
 
 void bootstrap();

@@ -51,6 +51,7 @@ describe('transactions HTTP idempotency', () => {
     expect(responses.map(({ status }) => status).sort()).toEqual([200, 201]);
     expect(transactionExternalId(responses[0])).toBe(transactionExternalId(responses[1]));
     await expect(prismaTest.transaction.count()).resolves.toBe(1);
+    await expect(prismaTest.outboxEvent.count()).resolves.toBe(1);
   });
 
   it('rejects a different body racing on the same idempotency key', async () => {
@@ -62,5 +63,6 @@ describe('transactions HTTP idempotency', () => {
     ]);
     expect(responses.map(({ status }) => status).sort()).toEqual([201, 422]);
     await expect(prismaTest.transaction.count()).resolves.toBe(1);
+    await expect(prismaTest.outboxEvent.count()).resolves.toBe(1);
   });
 });

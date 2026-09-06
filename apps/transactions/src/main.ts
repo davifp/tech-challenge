@@ -1,4 +1,4 @@
-import { type INestApplication } from '@nestjs/common';
+import { ConsoleLogger, type INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -28,7 +28,8 @@ function setupOpenApi(app: INestApplication): void {
 }
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: new ConsoleLogger({ json: true }) });
+  app.enableShutdownHooks();
   app.useGlobalFilters(new HttpExceptionFilter());
   setupOpenApi(app);
   const config = app.get<ConfigService<Env, true>>(ConfigService);

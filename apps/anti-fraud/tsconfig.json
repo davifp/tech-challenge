@@ -8,6 +8,6 @@
     "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.mts", "vitest.integration.config.mts"],
   "exclude": ["node_modules", "dist"]
 }

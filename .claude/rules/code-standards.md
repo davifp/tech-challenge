@@ -20,13 +20,13 @@ Prefira nomes expressivos e extração de funções:
 
 ```ts
 function canPublishArticle(article: Article): boolean {
-  return article.status === 'draft' && article.authorId !== undefined;
+  return article.status === "draft" && article.authorId !== undefined;
 }
 ```
 
-## Limitar classes e arquivos a 100 linhas
+## Manter classes e arquivos coesos
 
-Classes e arquivos `.ts` devem ter, no máximo, 100 linhas. Quando esse limite for atingido, extraia responsabilidades para outras classes, funções ou arquivos coesos.
+Arquivos `.ts` com mais de 100 linhas devem acionar uma revisão de coesão, não uma divisão automática. Como orientação, mantenha classes e arquivos entre 150 e 200 linhas no máximo. Ultrapassar essa faixa exige que o arquivo ainda represente uma única responsabilidade clara e que a divisão aumentaria apenas a navegação ou criaria abstrações artificiais.
 
 ```ts
 class OrderService {
@@ -47,11 +47,11 @@ class OrderService {
 }
 ```
 
-Se a classe ou o arquivo crescer, separe, por exemplo, a validação, a persistência e as regras de negócio em módulos próprios.
+Separe o arquivo quando houver responsabilidades independentes, como validação, persistência e regras de negócio. Não extraia helpers, wrappers ou módulos apenas para satisfazer uma contagem de linhas; a extração deve reduzir complexidade, acoplamento ou carga cognitiva.
 
-## Limitar métodos e funções a 30 linhas
+## Manter métodos e funções coesos
 
-Métodos e funções devem ter, no máximo, 30 linhas. Se o comportamento for maior, divida-o em métodos privados ou funções auxiliares com responsabilidades claras.
+Métodos e funções com mais de 30 linhas devem acionar uma revisão de responsabilidade e complexidade, não uma extração automática. Como orientação, mantenha-os entre 40 e 60 linhas no máximo. Funções maiores são aceitáveis quando preservam um fluxo linear e coeso.
 
 ```ts
 function registerUser(input: RegisterUserInput): User {
@@ -67,7 +67,7 @@ function registerUser(input: RegisterUserInput): User {
 }
 ```
 
-Cada função extraída deve continuar tendo uma única responsabilidade e permanecer dentro do limite de 30 linhas.
+Extraia funções quando isso reduzir aninhamento, separar regras ou efeitos colaterais e melhorar a compreensão. Não crie funções privadas, wrappers ou indireções apenas para satisfazer uma contagem de linhas. Cada função extraída deve representar um conceito ou uma responsabilidade clara.
 
 ## Preferir cláusulas de guarda
 
@@ -236,7 +236,7 @@ Nunca coloque dados sensíveis, como chaves de API, tokens, senhas ou credenciai
 Evite:
 
 ```ts
-const paymentApiKey = 'sk_live_123456789';
+const paymentApiKey = "sk_live_123456789";
 ```
 
 Prefira:
@@ -249,7 +249,7 @@ PAYMENT_API_KEY=chave-real-fora-do-repositorio
 const paymentApiKey = process.env.PAYMENT_API_KEY;
 
 if (!paymentApiKey) {
-  throw new Error('PAYMENT_API_KEY não configurada');
+  throw new Error("PAYMENT_API_KEY não configurada");
 }
 ```
 

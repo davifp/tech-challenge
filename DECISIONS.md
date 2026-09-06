@@ -123,3 +123,41 @@ servidor.
 
 **Por quê:** como ainda não fazemos cálculos com dinheiro, o `Money` deixaria o código mais complexo
 sem trazer benefício agora. Se isso mudar, ele poderá ser adicionado depois.
+
+## 13. Contratos Kafka compartilhados e versionados
+
+**Decisão:** manter os contratos dos eventos `transaction.created` e
+`transaction.status.updated` no pacote `@tech-challenge/event-contracts`. Os contratos são
+versionados e validados com Zod antes do processamento.
+
+**Alternativas consideradas:** definir os tipos separadamente em cada serviço, usar apenas
+interfaces TypeScript ou adotar um schema registry.
+
+**Por quê:** O producer e o consumer estão no mesmo monorepo e evoluem juntos. O pacote compartilhado
+evita contratos diferentes entre os serviços, e o Zod também valida as mensagens recebidas. Um
+schema registry acrescentaria infraestrutura sem necessidade nesta fase.
+
+## 14. Idempotência e ordenação dos eventos Kafka
+
+**Decisão:** usar `transactionExternalId` como chave no Kafka, manter o mesmo `eventId` nas novas
+tentativas e registrar os eventos processados em uma inbox.
+
+**Alternativas consideradas:** gerar um novo identificador em cada tentativa ou depender do
+exactly-once do Kafka.
+
+**Por quê:** o Kafka pode repetir mensagens. O identificador estável evita aplicar o mesmo efeito duas
+vezes, e a chave mantém em ordem os eventos de uma transação.
+
+## 15. Recuperação de falhas no Kafka
+
+**Decisão:** usar uma outbox para não perder eventos na publicação. No consumo, tentar processar a
+mensagem até três vezes e, se não der certo, enviá-la para uma DLQ. A mensagem só é confirmada depois
+de ser processada ou enviada para a DLQ.
+
+**Alternativas consideradas:** publicar no Kafka durante a requisição, usar CDC para publicar as
+alterações do banco ou usar tópicos de retry antes da DLQ.
+
+**Por quê:** publicar durante a requisição faria a API depender do Kafka. CDC seria uma solução
+robusta, mas exigiria mais infraestrutura. Como as tentativas são curtas, fazê-las no próprio consumer
+é mais simples do que manter tópicos adicionais, e a DLQ evita que uma mensagem inválida bloqueie o
+fluxo.

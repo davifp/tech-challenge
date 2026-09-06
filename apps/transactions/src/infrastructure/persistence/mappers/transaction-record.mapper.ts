@@ -1,4 +1,4 @@
-import { type IdempotentTransaction } from '../../../application/ports/transaction-repository.port';
+import { type IdempotentTransaction } from '../../../application/ports/transaction-event-store.port';
 import { Transaction } from '../../../domain/transaction/transaction';
 import { type TransactionStatusId } from '../../../domain/transaction/transaction-status';
 import { type TransactionTypeId } from '../../../domain/transaction/transaction-type';

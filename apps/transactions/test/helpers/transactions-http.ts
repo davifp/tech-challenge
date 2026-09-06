@@ -28,6 +28,10 @@ export function postTransaction(
   return idempotencyKey ? test.set('Idempotency-Key', idempotencyKey) : test;
 }
 
+export function getTransaction(app: INestApplication, transactionExternalId: string): Test {
+  return request(app.getHttpServer()).get(`/transactions/${transactionExternalId}`);
+}
+
 export function transactionExternalId(response: { body: unknown }): string {
   const payload = response.body;
   if (!payload || typeof payload !== 'object' || !('transactionExternalId' in payload)) {

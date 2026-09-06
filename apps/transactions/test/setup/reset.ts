@@ -2,10 +2,11 @@ import { afterAll, beforeEach } from 'vitest';
 
 import { prismaTest } from '../helpers/prisma-test';
 
-const TRUNCATE_TRANSACTION = 'TRUNCATE TABLE "Transaction" RESTART IDENTITY CASCADE';
+const RESET_PERSISTED_TRANSACTIONS =
+  'TRUNCATE TABLE "InboxEvent", "OutboxEvent", "Transaction" RESTART IDENTITY CASCADE';
 
 beforeEach(async () => {
-  await prismaTest.$executeRawUnsafe(TRUNCATE_TRANSACTION);
+  await prismaTest.$executeRawUnsafe(RESET_PERSISTED_TRANSACTIONS);
 });
 
 afterAll(async () => {
