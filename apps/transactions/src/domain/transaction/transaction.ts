@@ -33,17 +33,24 @@ type InvariantFields = Pick<
 >;
 
 export class Transaction implements TransactionProps {
-  readonly transactionExternalId!: string;
-  readonly accountExternalIdDebit!: string;
-  readonly accountExternalIdCredit!: string;
-  readonly value!: number;
-  readonly transferTypeId!: TransactionTypeId;
-  readonly transactionStatusId!: TransactionStatusId;
-  readonly createdAt!: Date;
-  readonly updatedAt!: Date;
+  readonly transactionExternalId: string;
+  readonly accountExternalIdDebit: string;
+  readonly accountExternalIdCredit: string;
+  readonly value: number;
+  readonly transferTypeId: TransactionTypeId;
+  readonly transactionStatusId: TransactionStatusId;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 
   private constructor(props: TransactionProps) {
-    Object.assign(this, props);
+    this.transactionExternalId = props.transactionExternalId;
+    this.accountExternalIdDebit = props.accountExternalIdDebit;
+    this.accountExternalIdCredit = props.accountExternalIdCredit;
+    this.value = props.value;
+    this.transferTypeId = props.transferTypeId;
+    this.transactionStatusId = props.transactionStatusId;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
   }
 
   static createPending(input: CreatePendingTransactionInput): Transaction {
