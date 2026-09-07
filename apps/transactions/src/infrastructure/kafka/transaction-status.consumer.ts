@@ -31,7 +31,7 @@ export class TransactionStatusConsumer
     private readonly config: TransactionStatusConsumerConfig,
     private readonly processor: TransactionStatusMessageProcessor,
   ) {
-    this.consumer = createTransactionStatusConsumer(config);
+    this.consumer = createTransactionStatusConsumer(config, async () => !this.stopped);
   }
 
   onApplicationBootstrap(): void {

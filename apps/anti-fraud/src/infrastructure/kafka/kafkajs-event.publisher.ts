@@ -1,4 +1,4 @@
-import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, type OnModuleDestroy } from '@nestjs/common';
 import {
   deadLetterTopicFor,
   failedKafkaMessageV1Schema,
@@ -18,7 +18,7 @@ type KafkaPublication = { topic: string; key: string | null; value: string };
 
 @Injectable()
 export class KafkaJsEventPublisher
-  implements TransactionStatusPublisher, DeadLetterPublisher, OnModuleInit, OnModuleDestroy
+  implements TransactionStatusPublisher, DeadLetterPublisher, OnModuleDestroy
 {
   private readonly logger = new Logger(KafkaJsEventPublisher.name);
   private readonly producer: Producer;
@@ -27,11 +27,6 @@ export class KafkaJsEventPublisher
   constructor(config: KafkaClientConfig) {
     const kafka = createKafkaClient(config);
     this.producer = kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
-  }
-
-  async onModuleInit(): Promise<void> {
-    await this.connect();
-    this.logger.log({ component: 'kafka_producer', outcome: 'connected' });
   }
 
   async publish(event: TransactionStatusUpdatedV1): Promise<void> {
@@ -80,10 +75,13 @@ export class KafkaJsEventPublisher
   }
 
   private connect(): Promise<void> {
-    this.connection ??= this.producer.connect().catch((error: unknown) => {
-      this.connection = undefined;
-      throw error;
-    });
+    this.connection ??= this.producer
+      .connect()
+      .then(() => this.logger.log({ component: 'kafka_producer', outcome: 'connected' }))
+      .catch((error: unknown) => {
+        this.connection = undefined;
+        throw error;
+      });
     return this.connection;
   }
 }

@@ -10,8 +10,8 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { env } from '../../src/infrastructure/config/env.loader';
+import { nextOffset } from '../../src/infrastructure/kafka/kafka-record';
 import { type KafkaClientConfig } from '../../src/infrastructure/kafka/kafka.config';
-import { nextOffset } from '../../src/infrastructure/kafka/transaction-created.consumer';
 import { createAntiFraudKafkaRuntime } from '../helpers/anti-fraud-kafka-runtime';
 import { KafkaEventProbe } from '../helpers/kafka-event-probe';
 import { KafkaTestHarness } from '../helpers/kafka-test-harness';
@@ -56,7 +56,6 @@ describe('anti-fraud Kafka flow', () => {
       DEAD_LETTER_TOPIC,
     ]);
     await probe.start([TRANSACTION_STATUS_UPDATED_TOPIC, DEAD_LETTER_TOPIC]);
-    await publisher.onModuleInit();
     await consumer.start();
   });
 

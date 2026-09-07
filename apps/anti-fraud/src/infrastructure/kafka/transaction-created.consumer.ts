@@ -7,19 +7,23 @@ import {
 import { TRANSACTION_CREATED_TOPIC } from '@tech-challenge/event-contracts';
 import { type Consumer, type EachMessagePayload } from 'kafkajs';
 
-import { kafkaCorrelationContext } from './kafka-log-context';
-import { type KafkaRecord } from './kafka-record';
+import { kafkaConsumerLifecycleContext, kafkaCorrelationContext } from './kafka-log-context';
+import { nextOffset, toKafkaRecord } from './kafka-record';
 import { type TransactionCreatedConsumerConfig } from './kafka.config';
 import { createKafkaClient } from './kafkajs-client.factory';
+import { sanitizeKafkaError } from './sanitize-kafka-error';
 import { type TransactionCreatedMessageProcessor } from './transaction-created-message.processor';
 
 @Injectable()
 export class TransactionCreatedConsumer implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(TransactionCreatedConsumer.name);
   private readonly consumer: Consumer;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private starting?: Promise<void>;
+  private stopped = true;
 
   constructor(
-    config: TransactionCreatedConsumerConfig,
+    private readonly config: TransactionCreatedConsumerConfig,
     private readonly processor: TransactionCreatedMessageProcessor,
   ) {
     const kafka = createKafkaClient(config);
@@ -27,38 +31,62 @@ export class TransactionCreatedConsumer implements OnApplicationBootstrap, OnMod
       groupId: config.groupId,
       sessionTimeout: config.sessionTimeoutMs,
       allowAutoTopicCreation: true,
+      retry: { restartOnFailure: async () => !this.stopped },
     });
   }
 
-  async onApplicationBootstrap(): Promise<void> {
-    await this.start();
+  onApplicationBootstrap(): void {
+    this.stopped = false;
+    this.scheduleStart(0);
   }
 
   async start(): Promise<void> {
+    this.stopped = false;
     try {
       await this.connectAndRun();
     } catch (error: unknown) {
-      await this.consumer.disconnect();
+      await this.consumer.disconnect().catch(() => undefined);
       throw error;
     }
-    this.logger.log({
-      component: 'kafka_consumer',
-      topic: TRANSACTION_CREATED_TOPIC,
-      outcome: 'connected',
-    });
   }
 
   async onModuleDestroy(): Promise<void> {
+    this.stopped = true;
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    await this.starting?.catch(() => undefined);
     await this.consumer.disconnect();
-    this.logger.log({
-      component: 'kafka_consumer',
-      topic: TRANSACTION_CREATED_TOPIC,
-      outcome: 'disconnected',
-    });
+    this.logger.log(kafkaConsumerLifecycleContext('disconnected'));
+  }
+
+  private scheduleStart(delayMs: number): void {
+    if (this.stopped) return;
+    this.reconnectTimer = setTimeout(() => this.startInBackground(), delayMs);
+  }
+
+  private startInBackground(): void {
+    this.starting = this.connectAndRun()
+      .catch(async (error: unknown) => {
+        await this.consumer.disconnect().catch(() => undefined);
+        this.logger.error({
+          ...kafkaConsumerLifecycleContext('retry_scheduled'),
+          error: sanitizeKafkaError(error),
+        });
+        this.scheduleStart(this.config.retryDelayMs);
+      })
+      .finally(() => {
+        this.starting = undefined;
+      });
+  }
+
+  private async connectAndRun(): Promise<void> {
+    await this.consumer.connect();
+    await this.consumer.subscribe({ topic: TRANSACTION_CREATED_TOPIC, fromBeginning: false });
+    await this.consumer.run({ autoCommit: false, eachMessage: (payload) => this.handle(payload) });
+    this.logger.log(kafkaConsumerLifecycleContext('connected'));
   }
 
   private async handle(payload: EachMessagePayload): Promise<void> {
-    const record = this.toRecord(payload);
+    const record = toKafkaRecord(payload);
     this.logger.log({
       eventName: TRANSACTION_CREATED_TOPIC,
       topic: record.topic,
@@ -72,24 +100,4 @@ export class TransactionCreatedConsumer implements OnApplicationBootstrap, OnMod
       { topic: record.topic, partition: record.partition, offset: nextOffset(record.offset) },
     ]);
   }
-
-  private toRecord(payload: EachMessagePayload): KafkaRecord {
-    return {
-      topic: payload.topic,
-      partition: payload.partition,
-      offset: payload.message.offset,
-      key: payload.message.key?.toString('utf8') ?? null,
-      value: payload.message.value?.toString('utf8') ?? null,
-    };
-  }
-
-  private async connectAndRun(): Promise<void> {
-    await this.consumer.connect();
-    await this.consumer.subscribe({ topic: TRANSACTION_CREATED_TOPIC, fromBeginning: false });
-    await this.consumer.run({ autoCommit: false, eachMessage: (payload) => this.handle(payload) });
-  }
-}
-
-export function nextOffset(offset: string): string {
-  return (BigInt(offset) + 1n).toString();
 }

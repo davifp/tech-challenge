@@ -50,7 +50,6 @@ async function prepareKafka(
   await harness.connect();
   await harness.ensureTopics([TRANSACTION_CREATED_TOPIC, TRANSACTION_STATUS_UPDATED_TOPIC]);
   await probe.start([TRANSACTION_CREATED_TOPIC, TRANSACTION_STATUS_UPDATED_TOPIC]);
-  await antiFraud.publisher.onModuleInit();
   await antiFraud.consumer.start();
 }
 

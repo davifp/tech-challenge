@@ -15,6 +15,10 @@ export function kafkaCorrelationContext(record: KafkaRecord) {
   };
 }
 
+export function kafkaConsumerLifecycleContext(outcome: string) {
+  return { component: 'kafka_consumer', topic: TRANSACTION_CREATED_TOPIC, outcome };
+}
+
 export function kafkaFailureContext(
   record: KafkaRecord,
   error: unknown,
