@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 
+import { transactionsApi, type TransactionsApi } from './api/client';
 import type { ListQuery } from './contracts';
-import { transactionsApi, type TransactionsApi } from './transactions-api';
 
 const TRANSACTIONS_QUERY_KEY = ['transactions'] as const;
 

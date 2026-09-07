@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { ListQuery, SubmissionAttempt } from './contracts';
-import { createTransactionsApi, TransactionsApiError } from './transactions-api';
+import type { ListQuery, SubmissionAttempt } from '../contracts';
+
+import { createTransactionsApi, TransactionsApiError } from './client';
 
 const API_ORIGIN = 'http://localhost:3001';
 const TRANSACTION = {
@@ -52,10 +53,6 @@ function abortablePendingFetch(): typeof fetch {
   });
 }
 
-function silentObservability() {
-  return { recordFailure: vi.fn(), recordRecovery: vi.fn() };
-}
-
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllEnvs();
@@ -67,10 +64,7 @@ describe('web/transactionsApi', () => {
     const fetcher = vi
       .fn<typeof fetch>()
       .mockResolvedValue(jsonResponse({ items: [TRANSACTION], page: 2, limit: 20, total: 21 }));
-    const api = createTransactionsApi({
-      fetcher,
-      observability: silentObservability(),
-    });
+    const api = createTransactionsApi({ fetcher });
     await expect(api.list(LIST_QUERY)).resolves.toMatchObject({ total: 21 });
     expect(fetcher).toHaveBeenCalledWith(
       'http://localhost:3001/transactions?status=pending&transferTypeId=1&createdAtFrom=2026-09-06T03%3A00%3A00.000Z&createdAtTo=2026-09-07T02%3A59%3A59.999Z&page=2&limit=20',
@@ -83,7 +77,6 @@ describe('web/transactionsApi', () => {
     const api = createTransactionsApi({
       apiOrigin: 'endereco-invalido',
       fetcher,
-      observability: silentObservability(),
     });
     await expect(api.list(LIST_QUERY)).rejects.toThrow(
       'NEXT_PUBLIC_API_URL deve ser uma origem HTTP(S) válida',
@@ -96,7 +89,6 @@ describe('web/transactionsApi', () => {
     const api = createTransactionsApi({
       apiOrigin: API_ORIGIN,
       fetcher,
-      observability: silentObservability(),
     });
     await expect(api.create(ATTEMPT)).resolves.toEqual(TRANSACTION);
     expect(fetcher).toHaveBeenCalledWith(
@@ -128,7 +120,6 @@ describe('web/transactionsApi', () => {
     const api = createTransactionsApi({
       apiOrigin: API_ORIGIN,
       fetcher,
-      observability: silentObservability(),
     });
     const error = await api.list(LIST_QUERY).catch((cause: unknown) => cause);
     expect(error).toBeInstanceOf(TransactionsApiError);
@@ -148,7 +139,6 @@ describe('web/transactionsApi', () => {
     const api = createTransactionsApi({
       apiOrigin: API_ORIGIN,
       fetcher,
-      observability: silentObservability(),
     });
     await expect(api.get(TRANSACTION.transactionExternalId)).rejects.toMatchObject({
       code: 'INVALID_RESPONSE',
@@ -160,7 +150,6 @@ describe('web/transactionsApi', () => {
     const api = createTransactionsApi({
       apiOrigin: API_ORIGIN,
       fetcher: abortablePendingFetch(),
-      observability: silentObservability(),
       timeoutMs: 50,
     });
     const request = expect(api.list(LIST_QUERY)).rejects.toMatchObject({ code: 'TIMEOUT' });
@@ -170,17 +159,14 @@ describe('web/transactionsApi', () => {
 
   it('propaga o cancelamento do chamador como erro tipado', async () => {
     const controller = new AbortController();
-    const observability = { recordFailure: vi.fn(), recordRecovery: vi.fn() };
     const api = createTransactionsApi({
       apiOrigin: API_ORIGIN,
       fetcher: abortablePendingFetch(),
-      observability,
     });
     const request = expect(api.list(LIST_QUERY, controller.signal)).rejects.toMatchObject({
       code: 'CANCELLED',
     });
     controller.abort();
     await request;
-    expect(observability.recordFailure).not.toHaveBeenCalled();
   });
 });

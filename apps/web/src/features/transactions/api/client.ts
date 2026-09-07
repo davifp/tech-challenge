@@ -1,27 +1,15 @@
 import type { z } from 'zod';
 
 import {
+  apiErrorEnvelopeSchema,
   transactionPageSchema,
   transactionResponseSchema,
+  type ApiErrorDetail,
   type ListQuery,
   type SubmissionAttempt,
   type TransactionPage,
   type TransactionResponse,
-} from './contracts';
-import {
-  createTransactionsApiObservability,
-  type TransactionsApiObservability,
-  type TransactionsApiOperation,
-} from './transactions-api-observability';
-import {
-  mapTransportError,
-  parseSuccessfulResponse,
-  readJson,
-  throwApiError,
-  TransactionsApiError,
-} from './transactions-api-response';
-
-export { TransactionsApiError };
+} from '../contracts';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -32,21 +20,38 @@ const HTTP_PROTOCOLS = new Set(['http:', 'https:']);
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
+type TransactionsApiErrorInput = {
+  code: string;
+  message: string;
+  status?: number;
+  details?: ApiErrorDetail[];
+  cause?: unknown;
+};
+
+export class TransactionsApiError extends Error {
+  readonly code: string;
+  readonly status?: number;
+  readonly details: ApiErrorDetail[];
+
+  constructor(input: TransactionsApiErrorInput) {
+    super(input.message, { cause: input.cause });
+    this.name = 'TransactionsApiError';
+    this.code = input.code;
+    this.status = input.status;
+    this.details = input.details ?? [];
+  }
+}
+
 type RequestDefinition<T> = {
-  operation: TransactionsApiOperation;
   path: string;
   schema: z.ZodType<T>;
   signal?: AbortSignal;
   init?: RequestInit;
-  observationIdentity?: string;
-  transactionExternalId?: string;
-  responseTransactionExternalId?: (response: T) => string;
 };
 
 type TransactionsApiOptions = {
   apiOrigin?: string;
   fetcher?: Fetcher;
-  observability?: TransactionsApiObservability;
   timeoutMs?: number;
 };
 
@@ -84,15 +89,82 @@ function buildListPath(transactionsPath: string, query: ListQuery): string {
   return `${transactionsPath}?${search.toString()}`;
 }
 
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch (cause) {
+    throw new TransactionsApiError({
+      code: 'INVALID_RESPONSE',
+      message: 'A API retornou uma resposta que não é JSON.',
+      status: response.status,
+      cause,
+    });
+  }
+}
+
+function parseResponse<T>(payload: unknown, schema: z.ZodType<T>, status: number): T {
+  const parsed = schema.safeParse(payload);
+  if (parsed.success) return parsed.data;
+  throw new TransactionsApiError({
+    code: 'INVALID_RESPONSE',
+    message: 'A resposta da API não corresponde ao contrato esperado.',
+    status,
+    cause: parsed.error,
+  });
+}
+
+function throwResponseError(payload: unknown, status: number): never {
+  const parsed = apiErrorEnvelopeSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new TransactionsApiError({
+      code: 'INVALID_RESPONSE',
+      message: 'A resposta de erro da API não corresponde ao contrato esperado.',
+      status,
+      cause: parsed.error,
+    });
+  }
+  throw new TransactionsApiError({
+    code: parsed.data.error.code,
+    message: parsed.data.error.message,
+    status,
+    details: parsed.data.error.details,
+  });
+}
+
+function mapRequestError(
+  cause: unknown,
+  signal: AbortSignal | undefined,
+  timedOut: boolean,
+): TransactionsApiError {
+  if (cause instanceof TransactionsApiError) return cause;
+  if (signal?.aborted) {
+    return new TransactionsApiError({
+      code: 'CANCELLED',
+      message: 'A requisição foi cancelada.',
+      cause,
+    });
+  }
+  if (timedOut) {
+    return new TransactionsApiError({
+      code: 'TIMEOUT',
+      message: 'A API demorou mais que o limite configurado para responder.',
+      cause,
+    });
+  }
+  return new TransactionsApiError({
+    code: 'NETWORK_ERROR',
+    message: 'Não foi possível alcançar a API de transações.',
+    cause,
+  });
+}
+
 export function createTransactionsApi(options: TransactionsApiOptions = {}): TransactionsApi {
   const fetcher = options.fetcher ?? globalThis.fetch.bind(globalThis);
-  const observability = options.observability ?? createTransactionsApiObservability();
   const timeoutMs = options.timeoutMs ?? REQUEST_TIMEOUT_MS;
   const buildTransactionsPath = (suffix = '') =>
     `${readTransactionsApiOrigin(options.apiOrigin)}${TRANSACTIONS_API_PATH}${suffix}`;
   async function request<T>(definition: RequestDefinition<T>): Promise<T> {
     const controller = new AbortController();
-    const startedAt = Date.now();
     let timedOut = false;
     const abortFromCaller = () => controller.abort(definition.signal?.reason);
     if (definition.signal?.aborted) abortFromCaller();
@@ -109,30 +181,10 @@ export function createTransactionsApi(options: TransactionsApiOptions = {}): Tra
         signal: controller.signal,
       });
       const payload = await readJson(response);
-      if (!response.ok) throwApiError(payload, response.status);
-      const parsedResponse = parseSuccessfulResponse(payload, definition.schema, response.status);
-      observability.recordRecovery({
-        operation: definition.operation,
-        durationMs: Date.now() - startedAt,
-        status: response.status,
-        requestIdentity: definition.observationIdentity,
-        transactionExternalId:
-          definition.responseTransactionExternalId?.(parsedResponse) ??
-          definition.transactionExternalId,
-      });
-      return parsedResponse;
+      if (!response.ok) throwResponseError(payload, response.status);
+      return parseResponse(payload, definition.schema, response.status);
     } catch (cause) {
-      const error = mapTransportError(cause, definition.signal, timedOut);
-      if (error.code !== 'CANCELLED') {
-        observability.recordFailure({
-          operation: definition.operation,
-          durationMs: Date.now() - startedAt,
-          error,
-          requestIdentity: definition.observationIdentity,
-          transactionExternalId: definition.transactionExternalId,
-        });
-      }
-      throw error;
+      throw mapRequestError(cause, definition.signal, timedOut);
     } finally {
       clearTimeout(timeout);
       definition.signal?.removeEventListener('abort', abortFromCaller);
@@ -141,7 +193,6 @@ export function createTransactionsApi(options: TransactionsApiOptions = {}): Tra
   return {
     async list(query, signal) {
       return request({
-        operation: 'list',
         path: buildListPath(buildTransactionsPath(), query),
         schema: transactionPageSchema,
         signal,
@@ -149,22 +200,16 @@ export function createTransactionsApi(options: TransactionsApiOptions = {}): Tra
     },
     async get(id, signal) {
       return request({
-        operation: 'detail',
         path: buildTransactionsPath(`/${encodeURIComponent(id)}`),
         schema: transactionResponseSchema,
         signal,
-        observationIdentity: id,
-        transactionExternalId: id,
       });
     },
     async create(attempt, signal) {
       return request({
-        operation: 'create',
         path: buildTransactionsPath(),
         schema: transactionResponseSchema,
         signal,
-        observationIdentity: attempt.key,
-        responseTransactionExternalId: (response) => response.transactionExternalId,
         init: {
           method: 'POST',
           headers: {

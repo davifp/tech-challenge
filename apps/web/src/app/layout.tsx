@@ -17,7 +17,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="pt-BR">
       <head>
-        <meta content="#f4f7fb" name="theme-color" />
+        <meta content="#fbf9fb" name="theme-color" />
       </head>
       <body>
         <Providers>

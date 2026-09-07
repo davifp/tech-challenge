@@ -1,11 +1,17 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import DashboardPage from './page';
+const redirect = vi.hoisted(() =>
+  vi.fn((path: string) => {
+    throw new Error(`REDIRECT:${path}`);
+  }),
+);
 
-describe('web/DashboardPage', () => {
-  it('renderiza o heading principal', () => {
-    render(<DashboardPage />);
-    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+vi.mock('next/navigation', () => ({ redirect }));
+
+describe('web/RootPage', () => {
+  it('redireciona a entrada para a listagem de transações', async () => {
+    const { default: RootPage } = await import('./page');
+    expect(() => RootPage()).toThrow('REDIRECT:/transactions');
+    expect(redirect).toHaveBeenCalledWith('/transactions');
   });
 });
