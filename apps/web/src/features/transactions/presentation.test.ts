@@ -42,3 +42,42 @@ describe('web/presentation', () => {
     );
   });
 });
+
+describe('web/presentation — TU-04 (recorte de criação)', () => {
+  it('traduz erros de criação para português', () => {
+    expect(apiErrorMessage('VALIDATION_ERROR')).toBe(
+      'Revise os campos informados e tente novamente.',
+    );
+    expect(apiErrorMessage('TRANSFER_TYPE_NOT_FOUND')).toBe(
+      'Selecione um tipo de transferência disponível.',
+    );
+    expect(apiErrorMessage('INVALID_TRANSACTION')).toBe(
+      'Revise os dados da transação e tente novamente.',
+    );
+    expect(apiErrorMessage('IDEMPOTENCY_KEY_CONFLICT')).toBe(
+      'Esta tentativa já foi usada com outros dados. Inicie uma nova tentativa.',
+    );
+    expect(apiErrorMessage('TIMEOUT')).toBe('A API demorou para responder. Tente novamente.');
+  });
+
+  it('traduz erros de campo de criação para português', () => {
+    expect(apiFieldErrorMessage({ path: 'accountExternalIdDebit', message: 'raw' })).toBe(
+      'Informe uma conta de débito válida.',
+    );
+    expect(apiFieldErrorMessage({ path: 'accountExternalIdCredit', message: 'raw' })).toBe(
+      'Informe uma conta de crédito válida e diferente da conta de débito.',
+    );
+    expect(apiFieldErrorMessage({ path: 'transferTypeId', message: 'raw' })).toBe(
+      'Selecione um tipo de transferência disponível.',
+    );
+  });
+
+  it('retorna fallback em português para código desconhecido', () => {
+    expect(apiErrorMessage('CODIGO_INEXISTENTE')).toBe(
+      'Não foi possível concluir a operação. Tente novamente.',
+    );
+    expect(apiFieldErrorMessage({ path: 'campo_desconhecido', message: 'raw' })).toBe(
+      'Um campo informado não é válido. Revise o formulário e tente novamente.',
+    );
+  });
+});

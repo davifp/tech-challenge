@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 
 import { transactionsApi, type TransactionsApi } from './api/client';
-import type { ListQuery } from './contracts';
+import type { ListQuery, SubmissionAttempt } from './contracts';
 
 const TRANSACTIONS_QUERY_KEY = ['transactions'] as const;
 
@@ -33,4 +33,10 @@ export function transactionDetailQueryOptions(
     queryKey: transactionQueryKeys.detail(transactionExternalId),
     queryFn: ({ signal }) => api.get(transactionExternalId, signal),
   });
+}
+
+export function createTransactionMutationOptions(api: TransactionsApi = transactionsApi) {
+  return {
+    mutationFn: (attempt: SubmissionAttempt) => api.create(attempt),
+  };
 }
