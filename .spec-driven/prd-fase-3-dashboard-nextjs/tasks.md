@@ -6,7 +6,7 @@ Base: [PRD](./prd.md), [TechSpec](./techspec.md) e [`refs/`](./refs/) — HTMLs 
 
 - [x] 1.0 [Fundação do dashboard e integração com a API](./task_1.md)
 - [x] 2.0 [Listagem responsiva, paginação e filtros](./task_2.md)
-- [ ] 3.0 [Detalhe da transação e preservação do contexto](./task_3.md)
+- [x] 3.0 [Detalhe da transação e preservação do contexto](./task_3.md)
 - [ ] 4.0 [Criação de transações e recuperação de envio](./task_4.md)
 - [ ] 5.0 [Acompanhamento automático e recuperação de falhas](./task_5.md)
 - [ ] 6.0 [E2E com Playwright, acessibilidade e responsividade](./task_6.md)
