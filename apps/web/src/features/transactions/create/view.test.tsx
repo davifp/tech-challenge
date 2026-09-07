@@ -159,7 +159,7 @@ describe('web/CreateTransactionView — TI-04', () => {
     expect(screen.getByRole('textbox', { name: /conta de crédito/i })).toHaveValue(CREDIT_UUID);
   });
 
-  it('exibe mensagem geral e preserva preenchimento quando a API retorna erro de rede', async () => {
+  it('preserva a tentativa para recuperação quando a confirmação se perde na rede', async () => {
     const user = userEvent.setup();
     createSpy.mockRejectedValue(
       new TransactionsApiError({ code: 'NETWORK_ERROR', message: 'rede' }),
@@ -167,9 +167,10 @@ describe('web/CreateTransactionView — TI-04', () => {
     renderView();
     await fillForm(user);
     await user.click(screen.getByRole('button', { name: /criar transação/i }));
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/não foi possível conectar/i);
+    await screen.findByText(/resultado desconhecido/i);
+    expect(screen.getByRole('button', { name: /retomar tentativa/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /conta de débito/i })).toHaveValue(DEBIT_UUID);
+    expect(sessionStorage.getItem('biud:submission-attempt')).toContain('"state":"uncertain"');
   });
 });
 
@@ -311,6 +312,8 @@ describe('web/CreateTransactionView — TI-07 (recorte do formulário)', () => {
     await waitFor(() => {
       expect(debit).toHaveAttribute('aria-invalid', 'true');
       expect(value).toHaveAttribute('aria-invalid', 'true');
+      expect(debit).toHaveAccessibleDescription(/identificador UUID da conta de débito/i);
+      expect(value).toHaveAccessibleDescription(/valor da transferência/i);
     });
   });
 

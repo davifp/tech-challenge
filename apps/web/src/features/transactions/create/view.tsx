@@ -31,7 +31,11 @@ function formatValueForInput(value: number): string {
 }
 
 function isUncertainError(error: TransactionsApiError): boolean {
-  return error.code === 'TIMEOUT' || (error.status !== undefined && error.status >= 500);
+  return (
+    error.code === 'NETWORK_ERROR' ||
+    error.code === 'TIMEOUT' ||
+    (error.status !== undefined && error.status >= 500)
+  );
 }
 
 const FORM_FIELD_PATHS = new Set(['accountExternalIdDebit', 'accountExternalIdCredit', 'value']);
@@ -71,10 +75,15 @@ function RecoveryBanner({ onReplay, onNewAttempt, isPending }: RecoveryBannerPro
   );
 }
 
-type FieldGroupProps = { label: string; htmlFor: string; error?: string; children: ReactNode };
+type FieldGroupProps = {
+  label: string;
+  htmlFor: string;
+  error?: string;
+  errorId: string;
+  children: ReactNode;
+};
 
-function FieldGroup({ label, htmlFor, error, children }: FieldGroupProps) {
-  const errorId = useId();
+function FieldGroup({ label, htmlFor, error, errorId, children }: FieldGroupProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-[13px] font-medium text-on-surface" htmlFor={htmlFor}>
@@ -101,6 +110,9 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
   const debitId = `${baseId}-debit`;
   const creditId = `${baseId}-credit`;
   const valueId = `${baseId}-value`;
+  const debitErrorId = `${debitId}-error`;
+  const creditErrorId = `${creditId}-error`;
+  const valueErrorId = `${valueId}-error`;
   const [recoveryAttempt, setRecoveryAttempt] = useState<SubmissionAttempt | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const form = useForm<CreateTransactionFormInput, unknown, CreateTransactionFormOutput>({
@@ -206,32 +218,40 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
       )}
       <FieldGroup
         error={errors.accountExternalIdDebit?.message}
+        errorId={debitErrorId}
         htmlFor={debitId}
         label="Conta de débito"
       >
         <input
+          aria-describedby={errors.accountExternalIdDebit ? debitErrorId : undefined}
           aria-invalid={errors.accountExternalIdDebit ? 'true' : 'false'}
           aria-required="true"
+          autoComplete="off"
           className="h-12 rounded-xl bg-surface-container-low px-4 text-[14px] text-on-surface placeholder:text-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-2 focus:outline-primary-container disabled:opacity-50"
           disabled={mutation.isPending}
           id={debitId}
-          placeholder="UUID da conta de débito"
+          placeholder="UUID da conta de débito…"
+          spellCheck={false}
           type="text"
           {...form.register('accountExternalIdDebit')}
         />
       </FieldGroup>
       <FieldGroup
         error={errors.accountExternalIdCredit?.message}
+        errorId={creditErrorId}
         htmlFor={creditId}
         label="Conta de crédito"
       >
         <input
+          aria-describedby={errors.accountExternalIdCredit ? creditErrorId : undefined}
           aria-invalid={errors.accountExternalIdCredit ? 'true' : 'false'}
           aria-required="true"
+          autoComplete="off"
           className="h-12 rounded-xl bg-surface-container-low px-4 text-[14px] text-on-surface placeholder:text-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-2 focus:outline-primary-container disabled:opacity-50"
           disabled={mutation.isPending}
           id={creditId}
-          placeholder="UUID da conta de crédito"
+          placeholder="UUID da conta de crédito…"
+          spellCheck={false}
           type="text"
           {...form.register('accountExternalIdCredit')}
         />
@@ -242,19 +262,26 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
           Transferência
         </div>
       </div>
-      <FieldGroup error={errors.value?.message} htmlFor={valueId} label="Valor">
+      <FieldGroup
+        error={errors.value?.message}
+        errorId={valueErrorId}
+        htmlFor={valueId}
+        label="Valor"
+      >
         <div className="relative">
           <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[14px] font-medium text-on-surface-variant">
             R$
           </span>
           <input
+            aria-describedby={errors.value ? valueErrorId : undefined}
             aria-invalid={errors.value ? 'true' : 'false'}
             aria-required="true"
+            autoComplete="off"
             className="h-12 w-full rounded-xl bg-surface-container-low pl-10 pr-4 text-[14px] text-on-surface placeholder:text-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-2 focus:outline-primary-container disabled:opacity-50"
             disabled={mutation.isPending}
             id={valueId}
             inputMode="decimal"
-            placeholder="0,00"
+            placeholder="0,00…"
             type="text"
             {...form.register('value')}
           />

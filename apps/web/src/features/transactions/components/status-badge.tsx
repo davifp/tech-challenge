@@ -38,7 +38,9 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
   const sizeStyles = SIZE_STYLES[size];
   return (
     <span
+      aria-live="polite"
       className={`inline-flex items-center font-semibold uppercase tracking-wide ${sizeStyles.container} ${STATUS_STYLES[status]}`}
+      role="status"
     >
       <IconComponent className={sizeStyles.icon} />
       {transactionStatusLabel(status)}

@@ -119,6 +119,13 @@ Antes do envio, travar submissões concorrentes; timeout/5xx preserva corpo/chav
 
 Reutilizar Vitest/jsdom e Testing Library; adicionar `user-event`. Testar componentes, schemas e cliente reais; substituir somente transporte HTTP externo. QueryClient isolado por teste; relógio controlado com avanço explícito e limpeza. Priorizar `getByRole`/`findByRole`. Rotas assíncronas verificadas no navegador.
 
+Playwright automatiza E2E-01 e a parte reproduzível de E2E-02 em Chromium. A configuração inicia o
+build de produção do dashboard e a API com `webServer`; o worker antifraude sem porta HTTP é iniciado
+no setup global e encerrado pelo teardown da execução. Cada rodada usa `DATABASE_URL_TEST`, grupos
+Kafka exclusivos e outbox/consumidores habilitados. Projetos separados cobrem 375, 768 e 1280px;
+screenshots, vídeos e traces são mantidos em `evidences/`, e o Vitest limita sua descoberta a
+`src/` para não executar specs Playwright.
+
 ### Testes de unidade
 
 | ID    | Caso                       | Critérios           | Resultado esperado                                                                  |
@@ -148,7 +155,10 @@ Reutilizar Vitest/jsdom e Testing Library; adicionar `user-event`. Testar compon
 | E2E-02 | Navegação, acessibilidade e responsividade | CA-03, CA-15, CA-16, CA-17 | Fluxos utilizáveis em 375, 768 e 1280px, com toque, teclado, leitor de tela e zoom 200%. |
 | E2E-03 | Entrega reproduzível                       | CA-17, CA-18               | Gate local/CI verde e decisões registradas.                                              |
 
-E2E com backend/antifraude, PostgreSQL e Kafka reais; dados sintéticos isolados. Automação opcional; evidências obrigatórias. Sem meta percentual de cobertura.
+E2E com backend/antifraude, PostgreSQL e Kafka reais; dados sintéticos isolados. A árvore acessível
+do Chromium complementa a navegação por teclado automatizada; a verificação com leitor de tela
+externo permanece manual e deve ser registrada sem ser confundida com automação. Sem meta percentual
+de cobertura.
 
 ## Sequenciamento do desenvolvimento
 

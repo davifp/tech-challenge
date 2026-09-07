@@ -16,6 +16,20 @@
     "test": {
       "dependsOn": ["^build"],
       "env": ["DATABASE_URL*", "KAFKA_*", "OUTBOX_*"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "env": [
+        "DATABASE_URL*",
+        "KAFKA_*",
+        "OUTBOX_*",
+        "NEXT_PUBLIC_API_URL",
+        "DASHBOARD_ORIGIN",
+        "E2E_*",
+        "PLAYWRIGHT_RUN_ID",
+        "PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION"
+      ]
     }
   }
 }

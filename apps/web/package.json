@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore",
     "test": "vitest run",
-    "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build"
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build && pnpm test:e2e"
   },
   "prettier": "@tech-challenge/prettier-config",
   "dependencies": {
@@ -26,6 +28,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tech-challenge/eslint-config": "workspace:*",
     "@tech-challenge/prettier-config": "workspace:*",

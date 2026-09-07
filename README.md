@@ -27,24 +27,26 @@ Verde ao final significa repositório pronto para desenvolvimento. Setup medido 
 
 Serviços de infra depois do `docker compose up -d`:
 
-| Serviço  | Endereço                                       |
-| -------- | ---------------------------------------------- |
-| Postgres | `localhost:5432`                               |
-| Kafka    | `localhost:9092`                               |
-| Kafka UI | [http://localhost:8080](http://localhost:8080) |
+| Serviço   | Endereço                                       |
+| --------- | ---------------------------------------------- |
+| Postgres  | `localhost:5432`                               |
+| Kafka     | `localhost:9092`                               |
+| Kafka UI  | [http://localhost:8080](http://localhost:8080) |
+| Dashboard | [http://localhost:3000](http://localhost:3000) |
 
 ## Comandos
 
 Raiz (quality gate):
 
-| Comando             | Efeito                                                                          |
-| ------------------- | ------------------------------------------------------------------------------- |
-| `pnpm quality`      | Roda o pipeline completo: `lint`, `typecheck`, `format:check`, `test`, `build`. |
-| `pnpm lint`         | ESLint 9 (flat config) em todos os apps e pacotes.                              |
-| `pnpm typecheck`    | `tsc --noEmit` em todos os apps e pacotes.                                      |
-| `pnpm format:check` | Prettier em modo verificação.                                                   |
-| `pnpm test`         | Vitest em todos os apps.                                                        |
-| `pnpm build`        | `nest build` nos backends, `next build` no `web`.                               |
+| Comando             | Efeito                                                        |
+| ------------------- | ------------------------------------------------------------- |
+| `pnpm quality`      | Roda lint, tipos, formato, Vitest, build e E2E Playwright.    |
+| `pnpm lint`         | ESLint 9 (flat config) em todos os apps e pacotes.            |
+| `pnpm typecheck`    | `tsc --noEmit` em todos os apps e pacotes.                    |
+| `pnpm format:check` | Prettier em modo verificação.                                 |
+| `pnpm test`         | Vitest em todos os apps.                                      |
+| `pnpm build`        | `nest build` nos backends, `next build` no `web`.             |
+| `pnpm test:e2e`     | Sobe os apps necessários e executa E2E-01/E2E-02 no Chromium. |
 
 Ciclo curto por app:
 
@@ -52,6 +54,34 @@ Ciclo curto por app:
 pnpm --filter @tech-challenge/<app> <script>
 # scripts: dev, build, lint, typecheck, format:check, test, quality
 ```
+
+Para iniciar o dashboard na porta padrão do Next.js, mantenha `NEXT_PUBLIC_API_URL` configurada na
+raiz e execute:
+
+```bash
+pnpm --filter @tech-challenge/web dev
+```
+
+O navegador usa `NEXT_PUBLIC_API_URL` para chamar a API diretamente. O serviço `transactions`
+permite essa origem por CORS conforme `DASHBOARD_ORIGIN`.
+
+## Testes E2E do dashboard
+
+O E2E usa `DATABASE_URL_TEST` e apaga somente essa base antes da execução. Nunca aponte essa variável
+para desenvolvimento ou produção. PostgreSQL e Kafka devem estar saudáveis; a suíte inicia e encerra
+API, antifraude e o build de produção do dashboard.
+
+```bash
+cp .env.example .env
+docker compose up -d postgres kafka
+pnpm --filter @tech-challenge/web test:e2e:install
+pnpm test:e2e
+```
+
+As portas padrão são `3001` para a API E2E e `5191` para o dashboard. Se estiverem ocupadas, defina
+`E2E_TRANSACTIONS_PORT`, `E2E_WEB_PORT`, `NEXT_PUBLIC_API_URL` e `DASHBOARD_ORIGIN` com valores
+coerentes antes de executar o build e os testes. Capturas, snapshots acessíveis, traces e vídeos ficam
+em `.spec-driven/prd-fase-3-dashboard-nextjs/evidences/`; o CI retém esse diretório quando falha.
 
 Infraestrutura:
 

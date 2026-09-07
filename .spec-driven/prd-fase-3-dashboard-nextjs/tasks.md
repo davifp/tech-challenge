@@ -9,5 +9,5 @@ Base: [PRD](./prd.md), [TechSpec](./techspec.md) e [`refs/`](./refs/) — HTMLs 
 - [x] 3.0 [Detalhe da transação e preservação do contexto](./task_3.md)
 - [x] 4.0 [Criação de transações e recuperação de envio](./task_4.md)
 - [x] 5.0 [Acompanhamento automático e recuperação de falhas](./task_5.md)
-- [ ] 6.0 [E2E com Playwright, acessibilidade e responsividade](./task_6.md)
+- [x] 6.0 [E2E com Playwright, acessibilidade e responsividade](./task_6.md)
 - [ ] 7.0 [Documentação, evidências e quality gate local/CI](./task_7.md)
