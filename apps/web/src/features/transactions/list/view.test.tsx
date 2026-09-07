@@ -56,16 +56,17 @@ function buildPage(pageNumber: number, items: TransactionResponse[], total = 21)
 }
 
 function renderScreen() {
-  const client = new QueryClient({
+  const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  return render(
-    <QueryClientProvider client={client}>
+  const result = render(
+    <QueryClientProvider client={queryClient}>
       <Suspense fallback={<div>fallback</div>}>
         <TransactionsListView />
       </Suspense>
     </QueryClientProvider>,
   );
+  return { ...result, queryClient };
 }
 
 beforeEach(() => {
@@ -243,5 +244,100 @@ describe('web/TransactionsListView — TI-07', () => {
     expect(links[0]?.getAttribute('href')).toContain(
       `/transactions/${transaction.transactionExternalId}`,
     );
+  });
+});
+
+describe('web/TransactionsListView — TI-06 (acompanhamento)', () => {
+  it('re-consulta e atualiza status de pendente para aprovado', async () => {
+    const pendingTx = buildTransaction(1, 'pending');
+    const approvedTx: TransactionResponse = {
+      ...pendingTx,
+      transactionStatus: { name: 'approved' },
+      updatedAt: '2026-09-07T04:00:00.000Z',
+    };
+    listSpy
+      .mockResolvedValueOnce(buildPage(1, [pendingTx]))
+      .mockResolvedValueOnce(buildPage(1, [approvedTx]));
+    const { queryClient } = renderScreen();
+    expect(within(await screen.findByRole('table')).getByText('Pendente')).toBeInTheDocument();
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'list'] });
+    await within(screen.getByRole('table')).findByText('Aprovada');
+  });
+
+  it('mantém dados visíveis e exibe aviso quando re-consulta falha', async () => {
+    listSpy
+      .mockResolvedValueOnce(buildPage(1, [buildTransaction(1, 'pending')]))
+      .mockRejectedValueOnce(new TransactionsApiError({ code: 'NETWORK_ERROR', message: 'erro' }));
+    const { queryClient } = renderScreen();
+    expect(within(await screen.findByRole('table')).getByText('Pendente')).toBeInTheDocument();
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'list'] });
+    const title = await screen.findByText('Falha na atualização automática');
+    expect(within(screen.getByRole('table')).getByText('Pendente')).toBeInTheDocument();
+    expect(title.closest('[role="status"]')).toHaveTextContent(/não foi possível conectar à API/i);
+  });
+
+  it('recupera após falha ao clicar em tentar novamente', async () => {
+    const user = userEvent.setup();
+    const approvedTx: TransactionResponse = {
+      ...buildTransaction(1, 'pending'),
+      transactionStatus: { name: 'approved' },
+      updatedAt: '2026-09-07T04:00:00.000Z',
+    };
+    listSpy
+      .mockResolvedValueOnce(buildPage(1, [buildTransaction(1, 'pending')]))
+      .mockRejectedValueOnce(new TransactionsApiError({ code: 'NETWORK_ERROR', message: 'erro' }))
+      .mockResolvedValueOnce(buildPage(1, [approvedTx]));
+    const { queryClient } = renderScreen();
+    expect(within(await screen.findByRole('table')).getByText('Pendente')).toBeInTheDocument();
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'list'] });
+    await screen.findByText('Falha na atualização automática');
+    await user.click(screen.getByRole('button', { name: /tentar novamente/i }));
+    await waitFor(() =>
+      expect(screen.queryByText('Falha na atualização automática')).not.toBeInTheDocument(),
+    );
+    expect(within(screen.getByRole('table')).getByText('Aprovada')).toBeInTheDocument();
+  });
+
+  it('substitui página inválida após re-consulta reduzir o total', async () => {
+    searchParamsRef.current = new URLSearchParams('status=pending&page=2');
+    listSpy
+      .mockResolvedValueOnce(buildPage(2, [buildTransaction(21, 'pending')], 21))
+      .mockResolvedValueOnce(buildPage(2, [], 0));
+    const { queryClient } = renderScreen();
+    await screen.findByRole('table');
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'list'] });
+    await waitFor(() =>
+      expect(routerMock.replace).toHaveBeenCalledWith('/transactions?status=pending', {
+        scroll: false,
+      }),
+    );
+  });
+});
+
+describe('web/TransactionsListView — TI-07 (recorte de polling)', () => {
+  it('aviso de polling tem role=status e aria-live=polite', async () => {
+    listSpy
+      .mockResolvedValueOnce(buildPage(1, [buildTransaction(1, 'pending')]))
+      .mockRejectedValueOnce(new TransactionsApiError({ code: 'TIMEOUT', message: 'timeout' }));
+    const { queryClient } = renderScreen();
+    expect(within(await screen.findByRole('table')).getByText('Pendente')).toBeInTheDocument();
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'list'], type: 'active' });
+    const title = await screen.findByText('Falha na atualização automática');
+    const banner = title.closest('[role="status"]');
+    expect(banner).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('foco em elemento interativo é preservado quando o aviso de re-consulta aparece', async () => {
+    listSpy
+      .mockResolvedValueOnce(buildPage(1, [buildTransaction(1, 'pending')]))
+      .mockRejectedValueOnce(new TransactionsApiError({ code: 'NETWORK_ERROR', message: 'erro' }));
+    const { queryClient } = renderScreen();
+    expect(within(await screen.findByRole('table')).getByText('Pendente')).toBeInTheDocument();
+    const applyButton = screen.getByRole('button', { name: /aplicar/i });
+    applyButton.focus();
+    expect(applyButton).toHaveFocus();
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'list'], type: 'active' });
+    await screen.findByText('Falha na atualização automática');
+    expect(applyButton).toHaveFocus();
   });
 });

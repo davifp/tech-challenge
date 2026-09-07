@@ -8,6 +8,7 @@ import { useEffect, useMemo } from 'react';
 import { TransactionsApiError } from '../api/client';
 import { EmptyState } from '../components/empty-state';
 import { ErrorState } from '../components/error-state';
+import { PollErrorBanner } from '../components/poll-error-banner';
 import type { TransactionPage } from '../contracts';
 import { apiErrorMessage } from '../presentation';
 import { listTransactionsQueryOptions } from '../queries';
@@ -119,15 +120,36 @@ function ContentSection({
   const page = query.data;
   if (!page) return <ListContentSkeleton />;
   if (currentSearch.page > totalPages(page.total)) return <ListContentSkeleton />;
+  const pollError = query.isError ? (
+    <PollErrorBanner
+      errorMessage={errorMessageFrom(query.error)}
+      onRetry={() => void query.refetch()}
+    />
+  ) : null;
   if (page.total === 0 && hasActiveFilters(currentSearch)) {
-    return <FilteredEmptyState onClear={onClearFilters} />;
+    return (
+      <>
+        {pollError}
+        <FilteredEmptyState onClear={onClearFilters} />
+      </>
+    );
   }
-  if (page.total === 0) return <BaseEmptyState />;
+  if (page.total === 0) {
+    return (
+      <>
+        {pollError}
+        <BaseEmptyState />
+      </>
+    );
+  }
   return (
-    <div className="overflow-hidden rounded-xl border border-surface-container-high/60 bg-surface-container-lowest shadow-soft">
-      <TransactionsList currentSearch={currentSearch} items={page.items} />
-      <PaginationBar onPageChange={onChangePage} page={page.page} total={page.total} />
-    </div>
+    <>
+      {pollError}
+      <div className="overflow-hidden rounded-xl border border-surface-container-high/60 bg-surface-container-lowest shadow-soft">
+        <TransactionsList currentSearch={currentSearch} items={page.items} />
+        <PaginationBar onPageChange={onChangePage} page={page.page} total={page.total} />
+      </div>
+    </>
   );
 }
 

@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type * as TransactionsApiModule from '../api/client';
 import { TransactionsApiError } from '../api/client';
 import type { TransactionResponse } from '../contracts';
+import { transactionQueryKeys } from '../queries';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -47,18 +48,23 @@ function buildTransaction(overrides: Partial<TransactionResponse> = {}): Transac
 }
 
 function renderView(id = VALID_ID, backHref = BACK_HREF) {
-  const client = new QueryClient({
+  const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
-  return render(
-    <QueryClientProvider client={client}>
+  const result = render(
+    <QueryClientProvider client={queryClient}>
       <TransactionDetailView backHref={backHref} transactionExternalId={id} />
     </QueryClientProvider>,
   );
+  return { ...result, queryClient };
 }
 
 beforeEach(() => {
   getSpy.mockReset();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('web/TransactionDetailView — TI-03', () => {
@@ -178,5 +184,69 @@ describe('web/TransactionDetailView — TI-07 (recorte do detalhe)', () => {
     await screen.findByRole('heading', { name: /detalhe da transação/i });
     const backLink = screen.getAllByRole('link', { name: /voltar/i })[0];
     expect(backLink).toHaveAttribute('href', BACK_HREF);
+  });
+});
+
+describe('web/TransactionDetailView — TI-06 (acompanhamento)', () => {
+  it('re-consulta e atualiza status de pendente para aprovado', async () => {
+    getSpy
+      .mockResolvedValueOnce(buildTransaction({ transactionStatus: { name: 'pending' } }))
+      .mockResolvedValueOnce(
+        buildTransaction({
+          transactionStatus: { name: 'approved' },
+          updatedAt: '2026-09-07T04:00:00.000Z',
+        }),
+      );
+    const { queryClient } = renderView();
+    await screen.findByText('Pendente');
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'detail'], type: 'active' });
+    await screen.findByText('Aprovada');
+  });
+
+  it('descarta listas inativas quando o detalhe conhece uma decisão', async () => {
+    let resolve!: (transaction: TransactionResponse) => void;
+    getSpy.mockImplementation(
+      () =>
+        new Promise<TransactionResponse>((promiseResolve) => {
+          resolve = promiseResolve;
+        }),
+    );
+    const { queryClient } = renderView();
+    const listKey = transactionQueryKeys.list({ page: 1, limit: 20 });
+    queryClient.setQueryData(listKey, {
+      items: [buildTransaction({ transactionStatus: { name: 'pending' } })],
+      page: 1,
+      limit: 20,
+      total: 1,
+    });
+    resolve(buildTransaction({ transactionStatus: { name: 'approved' } }));
+    await screen.findByText('Aprovada');
+    await waitFor(() => expect(queryClient.getQueryData(listKey)).toBeUndefined());
+  });
+
+  it('mantém detalhe visível e exibe aviso quando re-consulta falha', async () => {
+    getSpy
+      .mockResolvedValueOnce(buildTransaction({ transactionStatus: { name: 'pending' } }))
+      .mockRejectedValueOnce(new TransactionsApiError({ code: 'NETWORK_ERROR', message: 'erro' }));
+    const { queryClient } = renderView();
+    await screen.findByRole('heading', { name: /detalhe da transação/i });
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'detail'], type: 'active' });
+    const title = await screen.findByText('Falha na atualização automática');
+    expect(screen.getByRole('heading', { name: /detalhe da transação/i })).toBeInTheDocument();
+    expect(title.closest('[role="status"]')).toHaveTextContent(/não foi possível conectar à API/i);
+  });
+});
+
+describe('web/TransactionDetailView — TI-07 (recorte de polling)', () => {
+  it('aviso de polling tem role=status e aria-live=polite', async () => {
+    getSpy
+      .mockResolvedValueOnce(buildTransaction({ transactionStatus: { name: 'pending' } }))
+      .mockRejectedValueOnce(new TransactionsApiError({ code: 'TIMEOUT', message: 'timeout' }));
+    const { queryClient } = renderView();
+    await screen.findByText('Pendente');
+    void queryClient.refetchQueries({ queryKey: ['transactions', 'detail'], type: 'active' });
+    const title = await screen.findByText('Falha na atualização automática');
+    const banner = title.closest('[role="status"]');
+    expect(banner).toHaveAttribute('aria-live', 'polite');
   });
 });

@@ -1,12 +1,14 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useId } from 'react';
+import { useEffect, useId } from 'react';
 
 import { TransactionsApiError } from '../api/client';
+import { PollErrorBanner } from '../components/poll-error-banner';
 import { apiErrorMessage } from '../presentation';
-import { transactionDetailQueryOptions } from '../queries';
+import { transactionDetailQueryOptions, transactionQueryKeys } from '../queries';
+import { isTerminalStatus } from '../reconcile';
 
 import { DetailLoadingSkeleton } from './components/detail-skeleton';
 import { TransactionDetail } from './components/transaction-detail';
@@ -154,11 +156,22 @@ export function TransactionDetailView({
   backHref,
   transactionExternalId,
 }: TransactionDetailViewProps) {
+  const queryClient = useQueryClient();
   const isValidId = UUID_PATTERN.test(transactionExternalId);
   const query = useQuery({
     ...transactionDetailQueryOptions(transactionExternalId),
     enabled: isValidId,
   });
+  const decisionVersion =
+    query.data && isTerminalStatus(query.data.transactionStatus.name)
+      ? `${query.data.transactionExternalId}:${query.data.transactionStatus.name}:${query.data.updatedAt}`
+      : undefined;
+
+  useEffect(() => {
+    if (!decisionVersion) return;
+    queryClient.removeQueries({ queryKey: transactionQueryKeys.lists, type: 'inactive' });
+    void queryClient.invalidateQueries({ queryKey: transactionQueryKeys.lists, type: 'active' });
+  }, [decisionVersion, queryClient]);
 
   if (!isValidId) return <InvalidIdState backHref={backHref} />;
   if (query.isLoading && !query.data) return <DetailLoadingSkeleton backHref={backHref} />;
@@ -173,9 +186,16 @@ export function TransactionDetailView({
     );
   }
   if (!query.data) return <DetailLoadingSkeleton backHref={backHref} />;
+  const pollError = query.isError ? (
+    <PollErrorBanner
+      errorMessage={errorMessageFrom(query.error)}
+      onRetry={() => void query.refetch()}
+    />
+  ) : null;
   return (
     <div className="flex flex-col gap-6">
       <DetailHeader backHref={backHref} id={transactionExternalId} />
+      {pollError}
       <TransactionDetail transaction={query.data} />
     </div>
   );
