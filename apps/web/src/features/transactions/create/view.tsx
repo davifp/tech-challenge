@@ -19,6 +19,8 @@ import {
   type CreateTransactionFormOutput,
 } from './form-schema';
 
+import { Button } from '@/components/shared/button';
+
 const TRANSFER_TYPE_ID = 1 as const;
 
 const VALUE_FORMATTER = new Intl.NumberFormat('pt-BR', {
@@ -54,22 +56,23 @@ function RecoveryBanner({ onReplay, onNewAttempt, isPending }: RecoveryBannerPro
         para verificar se a transação já foi criada.
       </p>
       <div className="flex flex-wrap gap-2">
-        <button
-          className="h-9 rounded-full bg-primary-container px-4 text-[13px] font-semibold text-on-primary disabled:opacity-50"
+        <Button
+          className="h-9 rounded-full px-4"
           disabled={isPending}
           onClick={onReplay}
           type="button"
         >
           {isPending ? 'Enviando...' : 'Retomar tentativa'}
-        </button>
-        <button
-          className="h-9 rounded-full border border-outline-variant px-4 text-[13px] font-medium text-on-surface-variant hover:bg-surface-container-low disabled:opacity-50"
+        </Button>
+        <Button
+          className="h-9 rounded-full px-4"
           disabled={isPending}
           onClick={onNewAttempt}
           type="button"
+          variant="outlined"
         >
           Nova tentativa
-        </button>
+        </Button>
       </div>
     </section>
   );
@@ -289,23 +292,19 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
       </FieldGroup>
       <div className="flex items-center justify-end gap-3 border-t border-surface-container-high pt-5">
         {onClose ? (
-          <button
-            className="inline-flex h-11 items-center rounded-xl px-5 text-[13px] font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
-            onClick={onClose}
-            type="button"
-          >
+          <Button className="h-11 rounded-xl px-5" onClick={onClose} type="button" variant="ghost">
             Cancelar
-          </button>
+          </Button>
         ) : (
           <Link
-            className="inline-flex h-11 items-center rounded-xl px-5 text-[13px] font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
+            className="inline-flex h-11 cursor-pointer items-center rounded-xl px-5 text-[13px] font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
             href="/transactions"
           >
             Cancelar
           </Link>
         )}
         <button
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary-container px-6 text-[13px] font-semibold text-on-primary shadow-soft hover:brightness-110 disabled:opacity-50"
+          className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary-container px-6 text-[13px] font-semibold text-on-primary shadow-soft hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={mutation.isPending}
           type="submit"
         >

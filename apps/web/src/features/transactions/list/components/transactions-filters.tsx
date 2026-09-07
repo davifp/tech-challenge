@@ -6,6 +6,7 @@ import type { TransactionStatus } from '../../contracts';
 import { validateCivilDateRange, type CivilDateRangeError } from '../url-state/date-range';
 import { hasActiveFilters, type TransactionsSearch } from '../url-state/search';
 
+import { Button } from '@/components/shared/button';
 import { IconFilter } from '@/components/shared/icons';
 
 type TransactionsFiltersProps = {
@@ -147,21 +148,19 @@ export function TransactionsFilters({ current, onApply, onClear }: TransactionsF
           />
         </label>
         <div className="flex items-center gap-2 md:col-span-2 md:justify-end">
-          <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary-container px-4 text-[13px] font-semibold text-on-primary transition-colors hover:bg-primary"
-            type="submit"
-          >
+          <Button className="h-11 rounded-full px-4" type="submit">
             <IconFilter className="h-4 w-4" />
             Aplicar
-          </button>
+          </Button>
           {filtersActive && (
-            <button
-              className="inline-flex h-11 items-center justify-center rounded-full px-3 text-[13px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
+            <Button
+              className="h-11 rounded-full px-3"
               onClick={handleClear}
               type="button"
+              variant="ghost"
             >
               Limpar
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -1,5 +1,7 @@
 import { useId } from 'react';
 
+import { Button } from '@/components/shared/button';
+
 type ErrorStateProps = {
   description: string;
   onRetry(): void;
@@ -21,13 +23,9 @@ export function ErrorState({ description, onRetry, title }: ErrorStateProps) {
         {title}
       </h2>
       <p className="max-w-lg text-[14px] leading-6 text-on-surface-variant">{description}</p>
-      <button
-        className="inline-flex h-11 items-center rounded-full bg-primary-container px-5 text-[13px] font-semibold text-on-primary transition-colors hover:bg-primary"
-        onClick={onRetry}
-        type="button"
-      >
+      <Button className="h-11 rounded-full px-5" onClick={onRetry} type="button">
         Tentar novamente
-      </button>
+      </Button>
     </section>
   );
 }
