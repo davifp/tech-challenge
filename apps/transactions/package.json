@@ -7,6 +7,7 @@
     "generate": "prisma generate",
     "build": "nest build",
     "start": "node dist/main.js",
+    "start:e2e": "prisma migrate reset --force --config prisma.test.config.ts && tsx prisma/seed.ts && nest start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore",

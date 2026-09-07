@@ -69,6 +69,10 @@ jobs:
       OUTBOX_BATCH_SIZE: 50
       OUTBOX_RETRY_BASE_DELAY_MS: 1000
       OUTBOX_RETRY_MAX_DELAY_MS: 60000
+      E2E_TRANSACTIONS_PORT: 3001
+      E2E_WEB_PORT: 5191
+      DASHBOARD_ORIGIN: http://localhost:5191
+      NEXT_PUBLIC_API_URL: http://localhost:3001
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,5 +107,17 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @tech-challenge/transactions generate
 
+      - name: Install Playwright browser
+        run: pnpm --filter @tech-challenge/web test:e2e:install
+
       - name: Quality gate
         run: pnpm quality
+
+      - name: Upload Playwright failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-evidence
+          path: .spec-driven/prd-fase-3-dashboard-nextjs/evidences/
+          if-no-files-found: ignore
+          retention-days: 7
