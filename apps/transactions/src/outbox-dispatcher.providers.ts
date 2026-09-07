@@ -12,9 +12,9 @@ import {
 } from './application/ports/outbox-event.repository.port';
 import { DispatchOutboxEventsUseCase } from './application/use-cases/dispatch-outbox-events.use-case';
 import { type Env } from './infrastructure/config/env.schema';
-import { KafkaJsEventPublisher } from './infrastructure/kafka/kafkajs-event.publisher';
-import { OutboxDispatcherRunner } from './infrastructure/kafka/outbox-dispatcher.runner';
+import { KafkaJsEventPublisher } from './infrastructure/kafka/transaction-created/kafkajs-event.publisher';
 import { NestOutboxDispatchLogger } from './infrastructure/logging/nest-outbox-dispatch.logger';
+import { OutboxDispatcherRunner } from './infrastructure/outbox/outbox-dispatcher.runner';
 import { PrismaOutboxEventRepository } from './infrastructure/persistence/prisma-outbox-event.repository';
 import { PrismaService } from './infrastructure/persistence/prisma.service';
 import { kafkaPublisherConfig, outboxRunnerConfig } from './outbox-dispatcher.config';

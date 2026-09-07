@@ -7,7 +7,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { APPROVED_STATUS_ID } from '../../src/domain/transaction/transaction-status';
-import { nextOffset } from '../../src/infrastructure/kafka/kafka-record';
+import { nextOffset } from '../../src/infrastructure/kafka/shared/kafka-record';
 import { prismaTest } from '../helpers/prisma-test';
 import { transactionStatusEvent } from '../helpers/transaction-status-event.fixture';
 import { createTransactionStatusKafkaTestContext } from '../helpers/transaction-status-kafka-test-context';

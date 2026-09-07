@@ -12,10 +12,10 @@ import {
 import { AnalyzeTransactionUseCase } from './application/use-cases/analyze-transaction.use-case';
 import { AntiFraudPolicy } from './domain/anti-fraud/anti-fraud-policy';
 import { type Env } from './infrastructure/config/env.schema';
-import { consumerConfig, kafkaClientConfig } from './infrastructure/kafka/kafka.config';
-import { KafkaJsEventPublisher } from './infrastructure/kafka/kafkajs-event.publisher';
-import { TransactionCreatedMessageProcessor } from './infrastructure/kafka/transaction-created-message.processor';
-import { TransactionCreatedConsumer } from './infrastructure/kafka/transaction-created.consumer';
+import { KafkaJsEventPublisher } from './infrastructure/kafka/publishing/kafkajs-event.publisher';
+import { consumerConfig, kafkaClientConfig } from './infrastructure/kafka/shared/kafka.config';
+import { TransactionCreatedMessageProcessor } from './infrastructure/kafka/transaction-created/transaction-created-message.processor';
+import { TransactionCreatedConsumer } from './infrastructure/kafka/transaction-created/transaction-created.consumer';
 
 const publisherProvider: Provider = {
   provide: KafkaJsEventPublisher,

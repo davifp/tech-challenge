@@ -1,12 +1,13 @@
 import { type Consumer, type ConsumerConfig, type Kafka } from 'kafkajs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type TransactionCreatedConsumerConfig } from './kafka.config';
-import { createKafkaClient } from './kafkajs-client.factory';
+import { type TransactionCreatedConsumerConfig } from '../shared/kafka.config';
+import { createKafkaClient } from '../shared/kafkajs-client.factory';
+
 import { type TransactionCreatedMessageProcessor } from './transaction-created-message.processor';
 import { TransactionCreatedConsumer } from './transaction-created.consumer';
 
-vi.mock('./kafkajs-client.factory', () => ({
+vi.mock('../shared/kafkajs-client.factory', () => ({
   createKafkaClient: vi.fn(),
 }));
 

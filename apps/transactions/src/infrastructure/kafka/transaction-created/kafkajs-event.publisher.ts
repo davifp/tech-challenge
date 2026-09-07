@@ -8,7 +8,7 @@ import { Kafka, Partitioners, type Producer } from 'kafkajs';
 import {
   type EventPublisher,
   type PublishedEventMetadata,
-} from '../../application/ports/event-publisher.port';
+} from '../../../application/ports/event-publisher.port';
 
 const UNAVAILABLE_OFFSET = 'unavailable';
 

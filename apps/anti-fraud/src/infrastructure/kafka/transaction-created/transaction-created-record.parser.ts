@@ -4,8 +4,8 @@ import {
   type TransactionCreatedV1,
 } from '@tech-challenge/event-contracts';
 
-import { type KafkaRecord } from './kafka-record';
-import { PermanentKafkaMessageError } from './permanent-kafka-message.error';
+import { type KafkaRecord } from '../shared/kafka-record';
+import { PermanentKafkaMessageError } from '../shared/permanent-kafka-message.error';
 
 export function parseTransactionCreatedRecord(record: KafkaRecord): TransactionCreatedV1 {
   if (record.topic !== TRANSACTION_CREATED_TOPIC) {

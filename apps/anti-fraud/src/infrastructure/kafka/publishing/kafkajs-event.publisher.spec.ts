@@ -7,11 +7,12 @@ import {
 import { type Kafka, type Producer } from 'kafkajs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type KafkaClientConfig } from './kafka.config';
-import { createKafkaClient } from './kafkajs-client.factory';
+import { type KafkaClientConfig } from '../shared/kafka.config';
+import { createKafkaClient } from '../shared/kafkajs-client.factory';
+
 import { KafkaJsEventPublisher } from './kafkajs-event.publisher';
 
-vi.mock('./kafkajs-client.factory', () => ({
+vi.mock('../shared/kafkajs-client.factory', () => ({
   createKafkaClient: vi.fn(),
 }));
 

@@ -1,8 +1,8 @@
-import { TRANSACTION_CREATED_TOPIC } from '@tech-challenge/event-contracts';
+import { TRANSACTION_STATUS_UPDATED_TOPIC } from '@tech-challenge/event-contracts';
 import { z } from 'zod';
 
-import { type KafkaRecord } from './kafka-record';
-import { sanitizeKafkaError } from './sanitize-kafka-error';
+import { type KafkaRecord } from '../shared/kafka-record';
+import { sanitizeKafkaError } from '../shared/sanitize-kafka-error';
 
 const uuidSchema = z.uuid();
 
@@ -15,10 +15,6 @@ export function kafkaCorrelationContext(record: KafkaRecord) {
   };
 }
 
-export function kafkaConsumerLifecycleContext(outcome: string) {
-  return { component: 'kafka_consumer', topic: TRANSACTION_CREATED_TOPIC, outcome };
-}
-
 export function kafkaFailureContext(
   record: KafkaRecord,
   error: unknown,
@@ -26,7 +22,7 @@ export function kafkaFailureContext(
   outcome: string,
 ) {
   return {
-    eventName: TRANSACTION_CREATED_TOPIC,
+    eventName: TRANSACTION_STATUS_UPDATED_TOPIC,
     topic: record.topic,
     partition: record.partition,
     offset: record.offset,
@@ -35,4 +31,8 @@ export function kafkaFailureContext(
     outcome,
     error: sanitizeKafkaError(error),
   };
+}
+
+export function kafkaConsumerLifecycleContext(outcome: string) {
+  return { component: 'kafka_consumer', topic: TRANSACTION_STATUS_UPDATED_TOPIC, outcome };
 }

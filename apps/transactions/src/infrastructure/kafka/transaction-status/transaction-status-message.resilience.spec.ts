@@ -4,9 +4,9 @@ import {
   createProcessor,
   TRANSACTION_ID,
   validStatusRecord,
-} from '../../../test/helpers/transaction-status-message-processor.fixture';
-import { TransactionDecisionConflictError } from '../../application/errors/transaction-decision-conflict.error';
-import { TransactionNotFoundError } from '../../application/errors/transaction-not-found.error';
+} from '../../../../test/helpers/transaction-status-message-processor.fixture';
+import { TransactionDecisionConflictError } from '../../../application/errors/transaction-decision-conflict.error';
+import { TransactionNotFoundError } from '../../../application/errors/transaction-not-found.error';
 
 describe('TransactionStatusMessageProcessor resilience', () => {
   it('retries a missing transaction with heartbeat before dead lettering', async () => {

@@ -1,6 +1,6 @@
 import { type TransactionStatusUpdatedV1 } from '@tech-challenge/event-contracts';
 
-import { type KafkaRecord } from './kafka-record';
+import { type KafkaRecord } from '../shared/kafka-record';
 
 type EventLogContextInput = {
   record: KafkaRecord;

@@ -5,7 +5,7 @@ import {
   EVENT_ID,
   TRANSACTION_ID,
   validStatusRecord,
-} from '../../../test/helpers/transaction-status-message-processor.fixture';
+} from '../../../../test/helpers/transaction-status-message-processor.fixture';
 
 describe('TransactionStatusMessageProcessor', () => {
   it('maps Kafka events to the use case and accepts repeated delivery', async () => {

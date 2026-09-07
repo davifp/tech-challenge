@@ -6,7 +6,7 @@ import {
 } from '@tech-challenge/event-contracts';
 import { Kafka, Partitioners, type Producer } from 'kafkajs';
 
-import { type DeadLetterPublisher } from '../../application/ports/dead-letter-publisher.port';
+import { type DeadLetterPublisher } from '../../../application/ports/dead-letter-publisher.port';
 
 import { type TransactionStatusConsumerConfig } from './transaction-status-consumer.config';
 

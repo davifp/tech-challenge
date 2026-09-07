@@ -1,12 +1,12 @@
 import { Logger } from '@nestjs/common';
 
-import { type DeadLetterPublisher } from '../../application/ports/dead-letter-publisher.port';
-import { type AnalyzeTransactionUseCase } from '../../application/use-cases/analyze-transaction.use-case';
+import { type DeadLetterPublisher } from '../../../application/ports/dead-letter-publisher.port';
+import { type AnalyzeTransactionUseCase } from '../../../application/use-cases/analyze-transaction.use-case';
+import { type KafkaRecord } from '../shared/kafka-record';
+import { classifyKafkaFailure, wait } from '../shared/kafka-retry-policy';
 
 import { createFailedKafkaMessage } from './failed-kafka-message.factory';
 import { kafkaFailureContext } from './kafka-log-context';
-import { type KafkaRecord } from './kafka-record';
-import { classifyKafkaFailure, wait } from './kafka-retry-policy';
 import { parseTransactionCreatedRecord } from './transaction-created-record.parser';
 
 type ProcessorDependencies = {

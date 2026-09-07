@@ -7,7 +7,7 @@ import {
 } from '@tech-challenge/event-contracts';
 import { expect } from 'vitest';
 
-import { nextOffset } from '../../src/infrastructure/kafka/kafka-record';
+import { nextOffset } from '../../src/infrastructure/kafka/shared/kafka-record';
 
 import { type FullKafkaFlowContext } from './full-kafka-flow.context';
 import { responseBody, type TransactionResponseBody } from './http-contracts';

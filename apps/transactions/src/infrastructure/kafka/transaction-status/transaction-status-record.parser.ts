@@ -4,8 +4,8 @@ import {
   type TransactionStatusUpdatedV1,
 } from '@tech-challenge/event-contracts';
 
-import { type KafkaRecord } from './kafka-record';
-import { PermanentKafkaMessageError } from './permanent-kafka-message.error';
+import { type KafkaRecord } from '../shared/kafka-record';
+import { PermanentKafkaMessageError } from '../shared/permanent-kafka-message.error';
 
 export function parseTransactionStatusRecord(record: KafkaRecord): TransactionStatusUpdatedV1 {
   if (record.topic !== TRANSACTION_STATUS_UPDATED_TOPIC) {

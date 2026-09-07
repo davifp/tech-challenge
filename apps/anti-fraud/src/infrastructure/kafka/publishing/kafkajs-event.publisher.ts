@@ -8,11 +8,10 @@ import {
 } from '@tech-challenge/event-contracts';
 import { Partitioners, type Producer, type RecordMetadata } from 'kafkajs';
 
-import { type DeadLetterPublisher } from '../../application/ports/dead-letter-publisher.port';
-import { type TransactionStatusPublisher } from '../../application/ports/transaction-status-publisher.port';
-
-import { type KafkaClientConfig } from './kafka.config';
-import { createKafkaClient } from './kafkajs-client.factory';
+import { type DeadLetterPublisher } from '../../../application/ports/dead-letter-publisher.port';
+import { type TransactionStatusPublisher } from '../../../application/ports/transaction-status-publisher.port';
+import { type KafkaClientConfig } from '../shared/kafka.config';
+import { createKafkaClient } from '../shared/kafkajs-client.factory';
 
 type KafkaPublication = { topic: string; key: string | null; value: string };
 

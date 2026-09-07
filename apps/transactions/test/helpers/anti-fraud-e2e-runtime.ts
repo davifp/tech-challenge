@@ -1,4 +1,4 @@
-import { type KafkaClientConfig } from '../../../anti-fraud/src/infrastructure/kafka/kafka.config';
+import { type KafkaClientConfig } from '../../../anti-fraud/src/infrastructure/kafka/shared/kafka.config';
 import { createAntiFraudKafkaRuntime } from '../../../anti-fraud/test/helpers/anti-fraud-kafka-runtime';
 
 import { type KafkaE2eEnvironment } from './kafka-e2e-environment';
