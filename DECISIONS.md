@@ -20,13 +20,16 @@ Decisões estruturantes deste repositório. Formato conforme `PRACTICES.md` → 
 pnpm seriam mais simples, mas não teriam esse cache. Nx também funcionaria, porém traz mais conceitos
 do que precisamos neste projeto.
 
-## 3. Testes: Vitest em todos os apps
+## 3. Testes: Vitest e Playwright
 
-**Decisão:** Vitest é a única ferramenta de teste dos três apps, com `unplugin-swc` no NestJS para suportar decorators e Testing Library no Next.js.
+**Decisão:** usar Vitest nos testes dos apps e contratos, Testing Library nos componentes React e
+Playwright com Chromium nos testes pelo navegador.
 
-**Alternativas consideradas:** Jest oficial do NestJS nos backends e Vitest apenas no web.
+**Alternativas consideradas:** Jest nos serviços NestJS e Cypress nos testes de navegador.
 
-**Por quê:** ter a mesma ferramenta de teste nos três apps é bem mais confortável que ficar pulando entre Jest no backend e Vitest no frontend. Escolhi Vitest porque roda ESM direto, executa os arquivos de teste em paralelo por padrão e deixa o `packages/vitest-config` compartilhado entre os três. No NestJS, o `unplugin-swc` resolve os decorators sem trabalho extra, então trocar o Jest oficial não custou nada.
+**Por quê:** Vitest permite compartilhar a mesma configuração no monorepo. Playwright facilita
+iniciar, aguardar e encerrar o dashboard e a API durante o E2E. Com Cypress, essa coordenação exigiria
+scripts externos.
 
 ## 4. Lefthook e lint-staged
 
@@ -161,3 +164,75 @@ alterações do banco ou usar tópicos de retry antes da DLQ.
 robusta, mas exigiria mais infraestrutura. Como as tentativas são curtas, fazê-las no próprio consumer
 é mais simples do que manter tópicos adicionais, e a DLQ evita que uma mensagem inválida bloqueie o
 fluxo.
+
+## 16. Organização do frontend por funcionalidade
+
+**Decisão:** manter o código do dashboard em `features/transactions`. As páginas do App Router apenas
+montam as telas.
+
+**Alternativa considerada:** organizar o frontend por camadas técnicas globais, como `components`,
+`services` e `hooks`.
+
+**Por quê:** Como seria apenas a feature de transações, deixar os arquivos necessários mais próximos da feature fez mais sentido
+para mim. Caso houvesse mais features, uma separação por camadas seria melhor.
+
+## 17. Acesso direto do dashboard à API
+
+**Decisão:** o navegador chama a API diretamente pela URL definida em `NEXT_PUBLIC_API_URL`. O
+backend libera por CORS apenas a origem definida em `DASHBOARD_ORIGIN`.
+
+**Alternativas consideradas:** usar rewrite do Next.js ou criar Route Handlers como intermediários.
+
+**Por quê:** a API não tem autenticação nesta fase e já oferece os endpoints e dados necessários. Uma camada
+intermediária só aumentaria a configuração sem resolver um problema atual.
+
+## 18. Estado remoto e acompanhamento com TanStack Query
+
+**Decisão:** usar TanStack Query para consultas e cache. Enquanto houver uma transação pendente na
+tela, o dashboard consulta novamente a API a cada 3 segundos. Uma decisão final nunca volta para
+`pending`, mesmo que chegue uma resposta antiga.
+
+**Alternativas consideradas:** Redux Toolkit com RTK Query, hooks com cache manual ou SSE para
+receber as atualizações do backend.
+
+**Por quê:** a empresa já utiliza Redux Toolkit, então RTK Query seria uma opção válida. Neste
+dashboard, porém, não existe outro estado global que justifique criar uma store Redux apenas para
+buscar dados. TanStack Query resolve cache, cancelamento e polling com menos configuração. Se o
+projeto passar a usar Redux para outros estados, RTK Query pode se tornar a escolha mais consistente.
+SSE evitaria o polling, mas exigiria um novo endpoint e conexões persistentes para uma atualização
+que não precisa ser em tempo real.
+
+## 19. Validação do dashboard com Zod e React Hook Form
+
+**Decisão:** usar Zod para validar os dados recebidos da API e as entradas do formulário. React Hook
+Form gerencia os campos, erros e envio, integrado ao Zod por `@hookform/resolvers`.
+
+**Alternativas consideradas:** confiar apenas no TypeScript, usar somente a validação nativa do HTML
+ou gerenciar o formulário diretamente com estado React.
+
+**Por quê:** TypeScript não valida dados em tempo de execução, e a validação do HTML não cobre regras
+como contas diferentes e valor monetário brasileiro. Zod concentra as regras de cada entrada em
+schemas. Para este formulário, React Hook Form pode ser mais do que o necessário, mas foi adotado por
+já ser o padrão da empresa e por facilitar a manutenção caso o dashboard receba novos formulários.
+
+## 20. Recuperação de tentativa de criação por aba
+
+**Decisão:** guardar no `sessionStorage` os dados da tentativa e sua chave idempotente enquanto o
+resultado for incerto. Se o storage não estiver disponível, manter apenas em memória.
+
+**Alternativas consideradas:** `localStorage`, persistência no servidor e não guardar a tentativa.
+
+**Por quê:** sem guardar a chave e os dados, o usuário não conseguiria tentar de novo com segurança
+se a resposta se perdesse. O `sessionStorage` deixa o formulário um pouco mais complexo, mas resolve
+isso sem salvar a tentativa no backend e mantém os dados apenas na aba atual.
+
+## 21. Criação como modal e página
+
+**Decisão:** usar a rota `/transactions/new` como modal quando a navegação parte da listagem e como
+página completa no acesso direto ou após atualizar a página.
+
+**Alternativas consideradas:** usar apenas uma página ou controlar o modal somente com estado React.
+
+**Por quê:** o modal mantém o contexto da listagem, enquanto a rota permite acesso direto, atualização
+da página e navegação pelo histórico do navegador. Um modal controlado apenas por estado perderia
+esses comportamentos.
