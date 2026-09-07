@@ -12,6 +12,21 @@ import {
 const UI_UPDATE_LIMIT_MS = 5_000;
 
 test.describe('E2E-01 — ciclo real no navegador', () => {
+  test('fecha o modal ao criar uma transação e navegar para o detalhe', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/transactions');
+    await page.getByRole('link', { name: 'Registrar nova transação' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Nova transação' });
+    await expect(dialog).toBeVisible();
+    await fillTransactionForm(page, '500,00');
+    await page.getByRole('button', { name: 'Criar transação' }).click();
+    await expect(page).toHaveURL(/\/transactions\/[0-9a-f-]{36}/);
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('heading', { name: 'Detalhe da transação' })).toBeVisible();
+    await attachInterfaceEvidence(page, testInfo, 'e2e-01-criacao-pelo-modal');
+  });
+
   test('aprova a transação de R$ 1.000,00 e atualiza a decisão em até 5 segundos', async ({
     page,
     request,
