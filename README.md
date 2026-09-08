@@ -16,8 +16,7 @@ Práticas obrigatórias em [`PRACTICES.md`](./PRACTICES.md). Decisões estrutura
 
 ```bash
 git clone <fork-url> tech-challenge && cd tech-challenge
-nvm install                # instala a versão definida no .nvmrc, se necessário
-nvm use                    # ativa o Node 22 neste terminal
+nvm install                # instala e ativa a versão definida no .nvmrc
 node --version             # deve exibir v22.x
 pnpm --version             # deve exibir 11.25.x
 pnpm install               # instala dependências e hooks Git
@@ -38,14 +37,19 @@ pnpm --filter @tech-challenge/transactions exec prisma migrate deploy
 pnpm --filter @tech-challenge/transactions db:seed
 ```
 
-Depois, inicie Transactions, Anti-Fraud e Dashboard juntos:
+Depois, escolha uma das opções abaixo.
+
+**Opção 1 — iniciar Transactions, Anti-Fraud e Dashboard juntos:**
 
 ```bash
-nvm use
 pnpm dev
 ```
 
-Para acompanhar cada serviço separadamente, use três terminais, executando `nvm use` em cada um:
+Esse script executa a tarefa `dev` dos três apps ao mesmo tempo por meio do Turborepo.
+
+**Opção 2 — acompanhar cada serviço separadamente:**
+
+Use três terminais e execute um comando em cada um:
 
 ```bash
 pnpm --filter @tech-challenge/transactions dev
@@ -130,7 +134,6 @@ serializados porque as suítes de integração compartilham os tópicos do Kafka
 Para validar todo o repositório, execute na raiz:
 
 ```bash
-nvm use
 pnpm quality
 ```
 
