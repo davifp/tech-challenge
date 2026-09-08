@@ -41,7 +41,7 @@ function buildTransaction(index: number, status: TransactionStatus): Transaction
   const suffix = String(index).padStart(12, '0');
   return {
     transactionExternalId: `01999900-0000-7000-8000-${suffix}`,
-    transactionType: { name: 'transfer' },
+    transactionType: { name: 'pix' },
     transactionStatus: { name: status },
     value: 100 + index,
     createdAt: '2026-09-06T03:00:00.000Z',

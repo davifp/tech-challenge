@@ -40,7 +40,7 @@ export function CreateTransactionModal() {
       <div
         aria-labelledby="modal-title"
         aria-modal="true"
-        className="flex w-full max-w-[560px] flex-col overflow-hidden rounded-2xl bg-surface-container-lowest shadow-2xl"
+        className="flex w-full max-w-140 flex-col overflow-hidden rounded-2xl bg-surface-container-lowest shadow-2xl"
         role="dialog"
       >
         <div className="flex items-start justify-between border-b border-surface-container-high px-6 pb-4 pt-6">

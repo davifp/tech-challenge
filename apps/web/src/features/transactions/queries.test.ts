@@ -22,7 +22,7 @@ function buildTransaction(
 ): TransactionResponse {
   return {
     transactionExternalId: TRANSACTION_ID,
-    transactionType: { name: 'transfer' },
+    transactionType: { name: 'pix' },
     transactionStatus: { name: status },
     value: 100,
     createdAt: '2026-09-07T03:00:00.000Z',

@@ -8,7 +8,7 @@ import {
   type TransactionEventStore,
 } from '../../src/application/ports/transaction-event-store.port';
 import { type CreateTransactionCommand } from '../../src/application/use-cases/create-transaction.use-case';
-import { TRANSFER_TYPE_ID } from '../../src/domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../src/domain/transaction/transaction-type';
 
 export function buildCommand(
   overrides: Partial<CreateTransactionCommand> = {},
@@ -17,7 +17,7 @@ export function buildCommand(
     accountExternalIdDebit: randomUUID(),
     accountExternalIdCredit: randomUUID(),
     value: 120,
-    transferTypeId: TRANSFER_TYPE_ID,
+    transferTypeId: PIX_TYPE_ID,
     ...overrides,
   };
 }
@@ -35,7 +35,7 @@ export function buildRepositories(): {
       findByIdempotencyKey: vi.fn().mockResolvedValue(null),
     },
     catalogRepository: {
-      findTransferTypeById: vi.fn().mockResolvedValue({ id: TRANSFER_TYPE_ID, name: 'transfer' }),
+      findTransferTypeById: vi.fn().mockResolvedValue({ id: PIX_TYPE_ID, name: 'pix' }),
     },
   };
 }

@@ -3,6 +3,7 @@ import { expect, type APIRequestContext, type Page, type TestInfo } from '@playw
 import { readE2eEnvironment } from '../helpers/e2e-environment';
 
 const TERMINAL_STATUS_TIMEOUT_MS = 15_000;
+const DEFAULT_TRANSFER_TYPE_ID = '1';
 
 type TransactionStatus = 'pending' | 'approved' | 'rejected';
 
@@ -63,9 +64,13 @@ export async function waitForTransactionStatus(
 }
 
 export async function fillTransactionForm(page: Page, value: string): Promise<void> {
-  await page.getByRole('textbox', { name: 'Conta de débito' }).fill(crypto.randomUUID());
-  await page.getByRole('textbox', { name: 'Conta de crédito' }).fill(crypto.randomUUID());
-  await page.getByRole('textbox', { name: 'Valor' }).fill(value);
+  const form = page.getByRole('form', { name: 'Formulário de nova transação' });
+  await form.getByRole('textbox', { name: 'Conta de débito' }).fill(crypto.randomUUID());
+  await form.getByRole('textbox', { name: 'Conta de crédito' }).fill(crypto.randomUUID());
+  await form
+    .getByRole('combobox', { name: 'Tipo de transferência' })
+    .selectOption(DEFAULT_TRANSFER_TYPE_ID);
+  await form.getByRole('textbox', { name: 'Valor' }).fill(value);
 }
 
 export async function attachInterfaceEvidence(

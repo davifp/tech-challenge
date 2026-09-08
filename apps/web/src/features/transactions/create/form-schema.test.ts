@@ -13,10 +13,42 @@ function validInput(overrides: Record<string, unknown> = {}) {
   return {
     accountExternalIdDebit: DEBIT_UUID,
     accountExternalIdCredit: CREDIT_UUID,
+    transferTypeId: '1',
     value: '1000,01',
     ...overrides,
   };
 }
+
+describe('web/createTransactionFormSchema — transferTypeId', () => {
+  it('aceita transferTypeId "1", "2" e "3" e converte para número', () => {
+    for (const [raw, expected] of [
+      ['1', 1],
+      ['2', 2],
+      ['3', 3],
+    ] as const) {
+      const result = parse(validInput({ transferTypeId: raw }));
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.transferTypeId).toBe(expected);
+    }
+  });
+
+  it('rejeita transferTypeId ausente', () => {
+    const result = parse({
+      accountExternalIdDebit: DEBIT_UUID,
+      accountExternalIdCredit: CREDIT_UUID,
+      value: '1000,01',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejeita valor vazio', () => {
+    expect(parse(validInput({ transferTypeId: '' })).success).toBe(false);
+  });
+
+  it('rejeita valor fora do conjunto {1,2,3}', () => {
+    expect(parse(validInput({ transferTypeId: '4' })).success).toBe(false);
+  });
+});
 
 describe('web/createTransactionFormSchema — TU-01', () => {
   describe('entrada monetária', () => {

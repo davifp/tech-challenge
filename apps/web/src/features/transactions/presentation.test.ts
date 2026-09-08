@@ -14,7 +14,9 @@ describe('web/presentation', () => {
     expect(transactionStatusLabel('pending')).toBe('Pendente');
     expect(transactionStatusLabel('approved')).toBe('Aprovada');
     expect(transactionStatusLabel('rejected')).toBe('Rejeitada');
-    expect(transactionTypeLabel('transfer')).toBe('Transferência');
+    expect(transactionTypeLabel('pix')).toBe('Pix');
+    expect(transactionTypeLabel('ted')).toBe('TED');
+    expect(transactionTypeLabel('book_transfer')).toBe('Book Transfer');
     expect(formatCurrency(1000.01)).toBe('R$\u00a01.000,01');
   });
 

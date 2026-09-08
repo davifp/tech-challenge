@@ -11,7 +11,10 @@ const statusSchema = z.enum(['pending', 'approved', 'rejected']);
 export const listTransactionsSchema = z
   .object({
     status: statusSchema.optional(),
-    transferTypeId: z.coerce.number().int().min(1).optional(),
+    transferTypeId: z.coerce
+      .number()
+      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+      .optional(),
     createdAtFrom: z.iso.datetime({ offset: true }).optional(),
     createdAtTo: z.iso.datetime({ offset: true }).optional(),
     page: z.coerce.number().int().min(DEFAULT_PAGE).default(DEFAULT_PAGE),

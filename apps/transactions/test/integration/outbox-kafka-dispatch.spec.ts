@@ -27,7 +27,7 @@ import {
 import { DispatchOutboxEventsUseCase } from '../../src/application/use-cases/dispatch-outbox-events.use-case';
 import { Transaction } from '../../src/domain/transaction/transaction';
 import { PENDING_STATUS_ID } from '../../src/domain/transaction/transaction-status';
-import { TRANSFER_TYPE_ID } from '../../src/domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../src/domain/transaction/transaction-type';
 import { type Env } from '../../src/infrastructure/config/env.schema';
 import { KafkaEventProbe } from '../helpers/kafka-event.probe';
 import { prismaTest } from '../helpers/prisma-test';
@@ -67,7 +67,7 @@ describe('TI-03 durable outbox publication recovery', () => {
       accountExternalIdDebit: randomUUID(),
       accountExternalIdCredit: randomUUID(),
       value: 120,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     const event = createTransactionCreatedEvent(transaction);
     await eventStore.savePending({ transaction, event });

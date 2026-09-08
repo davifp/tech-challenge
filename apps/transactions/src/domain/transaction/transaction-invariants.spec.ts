@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { InvalidTransactionError } from '../errors/invalid-transaction.error';
 
 import { Transaction } from './transaction';
-import { TRANSFER_TYPE_ID } from './transaction-type';
+import { PIX_TYPE_ID } from './transaction-type';
 
 describe('Transaction invariants', () => {
   it('rejects the same account even when UUID casing differs', () => {
@@ -15,7 +15,7 @@ describe('Transaction invariants', () => {
         accountExternalIdDebit: sameAccount.toLowerCase(),
         accountExternalIdCredit: sameAccount.toUpperCase(),
         value: 120,
-        transferTypeId: TRANSFER_TYPE_ID,
+        transferTypeId: PIX_TYPE_ID,
       }),
     ).toThrow(InvalidTransactionError);
   });
@@ -26,7 +26,7 @@ describe('Transaction invariants', () => {
         accountExternalIdDebit: randomUUID(),
         accountExternalIdCredit: randomUUID(),
         value,
-        transferTypeId: TRANSFER_TYPE_ID,
+        transferTypeId: PIX_TYPE_ID,
       }),
     ).toThrow(InvalidTransactionError);
   });

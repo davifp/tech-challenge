@@ -19,6 +19,17 @@ export const createTransactionFormSchema = z
     accountExternalIdCredit: z
       .uuid('Informe o identificador UUID da conta de crédito.')
       .transform((v) => v.toLowerCase()),
+    transferTypeId: z
+      .string()
+      .min(1, 'Selecione o tipo de transferência.')
+      .transform((v, ctx) => {
+        const num = Number(v);
+        if (num !== 1 && num !== 2 && num !== 3) {
+          ctx.addIssue({ code: 'custom', message: 'Selecione o tipo de transferência.' });
+          return z.NEVER;
+        }
+        return num as 1 | 2 | 3;
+      }),
     value: z
       .string()
       .min(1, 'Informe o valor da transferência.')

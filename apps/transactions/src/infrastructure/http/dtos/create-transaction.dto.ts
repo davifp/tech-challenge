@@ -11,7 +11,9 @@ export const createTransactionSchema = z
   .strictObject({
     accountExternalIdDebit: z.uuid().describe('Debit account UUID'),
     accountExternalIdCredit: z.uuid().describe('Credit account UUID'),
-    transferTypeId: z.int().min(1).describe('Transfer type enum. 1 = transfer.'),
+    transferTypeId: z
+      .union([z.literal(1), z.literal(2), z.literal(3)])
+      .describe('Transfer type. 1=pix, 2=ted, 3=book_transfer.'),
     value: z
       .number()
       .positive()

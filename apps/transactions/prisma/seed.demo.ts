@@ -6,7 +6,7 @@ import { PrismaClient, type Prisma } from '../src/generated/prisma/client';
 
 const DEMO_ENV = 'development';
 const DEMO_TRANSACTION_COUNT = 25;
-const TRANSFER_TYPE_ID = 1;
+const PIX_TYPE_ID = 1;
 const PENDING_STATUS_ID = 1;
 const APPROVED_STATUS_ID = 2;
 const REJECTED_STATUS_ID = 3;
@@ -34,7 +34,7 @@ function buildDemoTransaction(index: number): Prisma.TransactionCreateInput {
     accountExternalIdDebit: randomUUID(),
     accountExternalIdCredit: randomUUID(),
     value: value.toFixed(DECIMAL_SCALE),
-    transferType: { connect: { id: TRANSFER_TYPE_ID } },
+    transferType: { connect: { id: PIX_TYPE_ID } },
     transactionStatus: { connect: { id: pickStatus(index) } },
     createdAt,
     // Override @updatedAt so historical demo rows do not look freshly touched.

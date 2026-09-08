@@ -8,7 +8,7 @@ import {
   type TransactionEventStore,
 } from '../../src/application/ports/transaction-event-store.port';
 import { Transaction } from '../../src/domain/transaction/transaction';
-import { TRANSFER_TYPE_ID } from '../../src/domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../src/domain/transaction/transaction-type';
 import { prismaTest } from '../helpers/prisma-test';
 import { createTransactionsTestApp, type TransactionsTestApp } from '../helpers/test-app';
 import { postTransaction, transactionExternalId } from '../helpers/transactions-http';
@@ -18,7 +18,7 @@ function buildTransaction(): Transaction {
     accountExternalIdDebit: randomUUID(),
     accountExternalIdCredit: randomUUID(),
     value: 120,
-    transferTypeId: TRANSFER_TYPE_ID,
+    transferTypeId: PIX_TYPE_ID,
   });
 }
 
@@ -40,7 +40,7 @@ describe('TI-02 transaction creation with transactional outbox', () => {
       accountExternalIdDebit: randomUUID(),
       accountExternalIdCredit: randomUUID(),
       value: 120,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     };
     const idempotencyKey = randomUUID();
     const created = await postTransaction(testApp.app, body, idempotencyKey);

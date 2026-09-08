@@ -29,7 +29,7 @@ describe('GET /transactions/:transactionExternalId', () => {
       .expect(200);
     expect(responseBody<TransactionResponseBody>(response)).toStrictEqual({
       transactionExternalId: record.transactionExternalId,
-      transactionType: { name: 'transfer' },
+      transactionType: { name: 'pix' },
       transactionStatus: { name: 'approved' },
       value: 245.75,
       createdAt: record.createdAt.toISOString(),

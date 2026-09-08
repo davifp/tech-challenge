@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Transaction } from '../../domain/transaction/transaction';
-import { TRANSFER_TYPE_ID } from '../../domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../domain/transaction/transaction-type';
 import { TransactionNotFoundError } from '../errors/transaction-not-found.error';
 import { type TransactionRepository } from '../ports/transaction-repository.port';
 
@@ -14,7 +14,7 @@ function buildTransaction(): Transaction {
     accountExternalIdDebit: randomUUID(),
     accountExternalIdCredit: randomUUID(),
     value: 120,
-    transferTypeId: TRANSFER_TYPE_ID,
+    transferTypeId: PIX_TYPE_ID,
   });
 }
 

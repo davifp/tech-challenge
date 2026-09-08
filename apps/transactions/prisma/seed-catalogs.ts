@@ -6,7 +6,11 @@ export const TRANSACTION_STATUSES = [
   { id: 3, name: 'rejected' },
 ] as const;
 
-export const TRANSACTION_TYPES = [{ id: 1, name: 'transfer' }] as const;
+export const TRANSACTION_TYPES = [
+  { id: 1, name: 'pix' },
+  { id: 2, name: 'ted' },
+  { id: 3, name: 'book_transfer' },
+] as const;
 
 export async function seedCatalogs(prisma: PrismaClient): Promise<void> {
   for (const status of TRANSACTION_STATUSES) {

@@ -30,13 +30,13 @@ describe('transactions HTTP validation', () => {
     await expect(prismaTest.transaction.count()).resolves.toBe(0);
   });
 
-  it('rejects a transfer type absent from the catalog', async () => {
+  it('rejects a transferTypeId outside {1,2,3} on the list endpoint', async () => {
     const response = await request(testApp.app.getHttpServer())
       .get('/transactions')
       .query({ transferTypeId: 999 });
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
-      error: { code: 'TRANSFER_TYPE_NOT_FOUND' },
+      error: { code: 'VALIDATION_ERROR' },
     });
   });
 
