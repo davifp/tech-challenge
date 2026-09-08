@@ -7,7 +7,7 @@ import { createTransactionsApi, TransactionsApiError } from './client';
 const API_ORIGIN = 'http://localhost:3001';
 const TRANSACTION = {
   transactionExternalId: '0199f9d2-1a2b-7c8d-9e0f-1234567890ab',
-  transactionType: { name: 'transfer' as const },
+  transactionType: { name: 'pix' as const },
   transactionStatus: { name: 'pending' as const },
   value: 1000.01,
   createdAt: '2026-09-06T03:00:00.000Z',

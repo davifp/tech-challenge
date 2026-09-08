@@ -31,7 +31,7 @@ const TX_ID = '0199f9d2-1a2b-7c8d-9e0f-aabbccdd1234';
 function buildTransaction(overrides: Partial<TransactionResponse> = {}): TransactionResponse {
   return {
     transactionExternalId: TX_ID,
-    transactionType: { name: 'transfer' },
+    transactionType: { name: 'pix' },
     transactionStatus: { name: 'pending' },
     value: 1000,
     createdAt: '2026-09-07T03:00:00.000Z',
@@ -58,10 +58,12 @@ async function fillForm(
   const debit = overrides.debit ?? DEBIT_UUID;
   const credit = overrides.credit ?? CREDIT_UUID;
   const value = overrides.value ?? '1000';
+  const transferType = overrides.transferType ?? '1';
   await user.clear(screen.getByRole('textbox', { name: /conta de débito/i }));
   await user.type(screen.getByRole('textbox', { name: /conta de débito/i }), debit);
   await user.clear(screen.getByRole('textbox', { name: /conta de crédito/i }));
   await user.type(screen.getByRole('textbox', { name: /conta de crédito/i }), credit);
+  await user.selectOptions(screen.getByLabelText(/tipo de transferência/i), transferType);
   await user.clear(screen.getByRole('textbox', { name: /valor/i }));
   await user.type(screen.getByRole('textbox', { name: /valor/i }), value);
 }

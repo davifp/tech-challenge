@@ -23,7 +23,9 @@ const STATUS_LABELS: Record<TransactionStatus, string> = {
 };
 
 const TYPE_LABELS: Record<TransactionType, string> = {
-  transfer: 'Transferência',
+  pix: 'Pix',
+  ted: 'TED',
+  book_transfer: 'Book Transfer',
 };
 
 const ERROR_MESSAGES: Record<string, string> = {

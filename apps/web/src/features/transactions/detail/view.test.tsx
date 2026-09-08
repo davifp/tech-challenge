@@ -36,7 +36,7 @@ const BACK_HREF = '/transactions?status=pending&page=2';
 function buildTransaction(overrides: Partial<TransactionResponse> = {}): TransactionResponse {
   return {
     transactionExternalId: VALID_ID,
-    transactionType: { name: 'transfer' },
+    transactionType: { name: 'pix' },
     transactionStatus: { name: 'approved' },
     value: 1000.01,
     createdAt: '2026-09-06T03:00:00.000Z',
@@ -94,7 +94,7 @@ describe('web/TransactionDetailView — TI-03', () => {
     expect(screen.getByText('Atualizada em')).toBeInTheDocument();
     expect(screen.getByText('Conta de débito')).toBeInTheDocument();
     expect(screen.getByText('Conta de crédito')).toBeInTheDocument();
-    expect(screen.getByText('Transferência')).toBeInTheDocument();
+    expect(screen.getByText('Pix')).toBeInTheDocument();
     expect(screen.getByText('Aprovada')).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*1\.000,01/)).toBeInTheDocument();
   });

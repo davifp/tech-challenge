@@ -17,7 +17,7 @@ function buildTx(
 ): TransactionResponse {
   return {
     transactionExternalId: id,
-    transactionType: { name: 'transfer' },
+    transactionType: { name: 'pix' },
     transactionStatus: { name: status },
     value: 100,
     createdAt: '2026-09-07T00:00:00.000Z',

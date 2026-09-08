@@ -10,13 +10,14 @@ function hasAtMostTwoDecimals(value: number): boolean {
 }
 
 export const transactionStatusSchema = z.enum(['pending', 'approved', 'rejected']);
-export const transactionTypeSchema = z.enum(['transfer']);
+export const transactionTypeSchema = z.enum(['pix', 'ted', 'book_transfer']);
+export const transactionTypeIdSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 
 export const createTransactionInputSchema = z
   .strictObject({
     accountExternalIdDebit: z.uuid().transform((value) => value.toLowerCase()),
     accountExternalIdCredit: z.uuid().transform((value) => value.toLowerCase()),
-    transferTypeId: z.literal(1),
+    transferTypeId: transactionTypeIdSchema,
     value: z.number().finite().positive().refine(hasAtMostTwoDecimals),
   })
   .refine((input) => input.accountExternalIdDebit !== input.accountExternalIdCredit, {
@@ -44,7 +45,7 @@ export const transactionPageSchema = z.strictObject({
 
 export const listQuerySchema = z.strictObject({
   status: transactionStatusSchema.optional(),
-  transferTypeId: z.literal(1).optional(),
+  transferTypeId: transactionTypeIdSchema.optional(),
   createdAtFrom: z.iso.datetime({ offset: true }).optional(),
   createdAtTo: z.iso.datetime({ offset: true }).optional(),
   page: z.number().int().min(MINIMUM_PAGE),
@@ -72,6 +73,7 @@ export const apiErrorEnvelopeSchema = z.strictObject({
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
 export type TransactionType = z.infer<typeof transactionTypeSchema>;
+export type TransactionTypeId = z.infer<typeof transactionTypeIdSchema>;
 export type CreateTransactionInput = z.infer<typeof createTransactionInputSchema>;
 export type TransactionResponse = z.infer<typeof transactionResponseSchema>;
 export type TransactionPage = z.infer<typeof transactionPageSchema>;

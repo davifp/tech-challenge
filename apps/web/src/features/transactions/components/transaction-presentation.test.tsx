@@ -8,7 +8,7 @@ import { TransactionPresentation } from './transaction-presentation';
 
 const TRANSACTION: TransactionResponse = {
   transactionExternalId: '0199f9d2-1a2b-7c8d-9e0f-1234567890ab',
-  transactionType: { name: 'transfer' },
+  transactionType: { name: 'pix' },
   transactionStatus: { name: 'approved' },
   value: 1000.01,
   createdAt: '2026-09-06T03:00:00.000Z',
@@ -22,7 +22,7 @@ describe('web/TransactionPresentation', () => {
     const { container } = render(<TransactionPresentation transaction={TRANSACTION} />);
     const facts = container.querySelector('dl');
     expect(facts).not.toBeNull();
-    expect(within(facts as HTMLElement).getByText('Transferência')).toBeInTheDocument();
+    expect(within(facts as HTMLElement).getByText('Pix')).toBeInTheDocument();
     expect(within(facts as HTMLElement).getByText('R$ 1.000,01')).toBeInTheDocument();
     expect(within(facts as HTMLElement).getByText('Aprovada')).toBeInTheDocument();
     expect(within(facts as HTMLElement).getByText('Horário de Brasília')).toBeInTheDocument();

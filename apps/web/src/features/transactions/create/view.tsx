@@ -8,7 +8,7 @@ import { type ReactNode, useEffect, useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { TransactionsApiError } from '../api/client';
-import type { CreateTransactionInput, SubmissionAttempt } from '../contracts';
+import type { SubmissionAttempt } from '../contracts';
 import { apiErrorMessage, apiFieldErrorMessage } from '../presentation';
 import { createTransactionMutationOptions, transactionQueryKeys } from '../queries';
 import { clearAttempt, loadAttempt, saveAttempt } from '../submission-attempt';
@@ -20,8 +20,6 @@ import {
 } from './form-schema';
 
 import { Button } from '@/components/shared/button';
-
-const TRANSFER_TYPE_ID = 1 as const;
 
 const VALUE_FORMATTER = new Intl.NumberFormat('pt-BR', {
   minimumFractionDigits: 2,
@@ -40,7 +38,12 @@ function isUncertainError(error: TransactionsApiError): boolean {
   );
 }
 
-const FORM_FIELD_PATHS = new Set(['accountExternalIdDebit', 'accountExternalIdCredit', 'value']);
+const FORM_FIELD_PATHS = new Set([
+  'accountExternalIdDebit',
+  'accountExternalIdCredit',
+  'transferTypeId',
+  'value',
+]);
 
 type RecoveryBannerProps = { onReplay(): void; onNewAttempt(): void; isPending: boolean };
 
@@ -112,15 +115,22 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
   const baseId = useId();
   const debitId = `${baseId}-debit`;
   const creditId = `${baseId}-credit`;
+  const typeId = `${baseId}-transfer-type`;
   const valueId = `${baseId}-value`;
   const debitErrorId = `${debitId}-error`;
   const creditErrorId = `${creditId}-error`;
+  const typeErrorId = `${typeId}-error`;
   const valueErrorId = `${valueId}-error`;
   const [recoveryAttempt, setRecoveryAttempt] = useState<SubmissionAttempt | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const form = useForm<CreateTransactionFormInput, unknown, CreateTransactionFormOutput>({
     resolver: zodResolver(createTransactionFormSchema),
-    defaultValues: { accountExternalIdDebit: '', accountExternalIdCredit: '', value: '' },
+    defaultValues: {
+      accountExternalIdDebit: '',
+      accountExternalIdCredit: '',
+      transferTypeId: '',
+      value: '',
+    },
   });
   const { errors } = form.formState;
   const mutation = useMutation({
@@ -173,6 +183,7 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
     form.reset({
       accountExternalIdDebit: stored.body.accountExternalIdDebit,
       accountExternalIdCredit: stored.body.accountExternalIdCredit,
+      transferTypeId: String(stored.body.transferTypeId),
       value: formatValueForInput(stored.body.value),
     });
   }, []);
@@ -183,8 +194,7 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
   }
   function handleFormSubmit(formData: CreateTransactionFormOutput) {
     setRecoveryAttempt(null);
-    const body: CreateTransactionInput = { ...formData, transferTypeId: TRANSFER_TYPE_ID };
-    submitAttempt({ key: crypto.randomUUID(), body, state: 'sending' });
+    submitAttempt({ key: crypto.randomUUID(), body: formData, state: 'sending' });
   }
   function handleReplay() {
     if (!recoveryAttempt) return;
@@ -259,12 +269,27 @@ export function CreateTransactionView({ onClose }: CreateTransactionViewProps) {
           {...form.register('accountExternalIdCredit')}
         />
       </FieldGroup>
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[13px] font-medium text-on-surface">Tipo de transferência</span>
-        <div className="flex h-12 items-center rounded-xl bg-surface-container px-4 text-[14px] text-on-surface-variant">
-          Transferência
-        </div>
-      </div>
+      <FieldGroup
+        error={errors.transferTypeId?.message}
+        errorId={typeErrorId}
+        htmlFor={typeId}
+        label="Tipo de transferência"
+      >
+        <select
+          aria-describedby={errors.transferTypeId ? typeErrorId : undefined}
+          aria-invalid={errors.transferTypeId ? 'true' : 'false'}
+          aria-required="true"
+          className="h-12 rounded-xl bg-surface-container-low px-4 text-[14px] text-on-surface focus:bg-surface-container-lowest focus:outline-2 focus:outline-primary-container disabled:opacity-50"
+          disabled={mutation.isPending}
+          id={typeId}
+          {...form.register('transferTypeId')}
+        >
+          <option value="">Selecione o tipo…</option>
+          <option value="1">Pix</option>
+          <option value="2">TED</option>
+          <option value="3">Book Transfer</option>
+        </select>
+      </FieldGroup>
       <FieldGroup
         error={errors.value?.message}
         errorId={valueErrorId}
