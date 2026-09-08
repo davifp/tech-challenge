@@ -107,13 +107,13 @@ describe('web/CreateTransactionView — TI-04', () => {
     expect(alerts.some((a) => /diferentes/i.test(a.textContent ?? ''))).toBe(true);
   });
 
-  it('rejeita valor com mais de duas casas decimais', async () => {
+  it('impede letras e caracteres especiais e limita o valor a duas casas decimais', async () => {
     const user = userEvent.setup();
     renderView();
-    await fillForm(user, { value: '1000,011' });
-    await user.click(screen.getByRole('button', { name: /criar transação/i }));
+    const value = screen.getByRole('textbox', { name: /valor/i });
+    await user.type(value, 'abc1.000,011xyz');
+    expect(value).toHaveValue('1000,01');
     expect(createSpy).not.toHaveBeenCalled();
-    await screen.findByRole('alert');
   });
 
   it('envia os dados corretos com chave de idempotência ao submeter formulário válido', async () => {
