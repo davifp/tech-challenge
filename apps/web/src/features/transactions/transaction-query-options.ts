@@ -1,13 +1,13 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import { transactionsApi, type TransactionsApi } from './api/client';
+import { transactionsApi, type TransactionsApi } from './api/transactions-api';
+import { hasPendingItems, reconcileTransaction, reconcileTransactionPage } from './reconcile';
 import type {
   ListQuery,
   SubmissionAttempt,
   TransactionPage,
   TransactionResponse,
-} from './contracts';
-import { hasPendingItems, reconcileTransaction, reconcileTransactionPage } from './reconcile';
+} from './transaction-schemas';
 
 export const POLL_INTERVAL_MS = 3_000;
 

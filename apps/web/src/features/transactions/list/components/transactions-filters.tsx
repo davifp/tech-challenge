@@ -2,16 +2,19 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
-import type { TransactionStatus, TransactionTypeId } from '../../contracts';
-import { validateCivilDateRange, type CivilDateRangeError } from '../url-state/date-range';
-import { hasActiveFilters, type TransactionsSearch } from '../url-state/search';
+import type { TransactionStatus, TransactionTypeId } from '../../transaction-schemas';
+import { validateCivilDateRange, type CivilDateRangeError } from '../search-params/date-range';
+import {
+  hasActiveFilters,
+  type TransactionSearchParams,
+} from '../search-params/transaction-search-params';
 
-import { Button } from '@/components/shared/button';
-import { IconFilter } from '@/components/shared/icons';
+import { Button } from '@/components/ui/button';
+import { IconFilter } from '@/components/ui/icons';
 
 type TransactionsFiltersProps = {
-  current: TransactionsSearch;
-  onApply(patch: Pick<TransactionsSearch, 'status' | 'transferTypeId' | 'from' | 'to'>): void;
+  current: TransactionSearchParams;
+  onApply(patch: Pick<TransactionSearchParams, 'status' | 'transferTypeId' | 'from' | 'to'>): void;
   onClear(): void;
 };
 
@@ -43,7 +46,7 @@ const RANGE_ERROR_MESSAGES: Record<CivilDateRangeError, string> = {
 const INPUT_BASE =
   'h-11 rounded-xl bg-surface-container-low px-3 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container/60 transition-colors';
 
-function buildFormState(current: TransactionsSearch): FiltersFormState {
+function buildFormState(current: TransactionSearchParams): FiltersFormState {
   return {
     status: current.status ?? '',
     transferTypeId: current.transferTypeId ?? '',
@@ -52,7 +55,7 @@ function buildFormState(current: TransactionsSearch): FiltersFormState {
   };
 }
 
-function rangeErrorFrom(current: TransactionsSearch): CivilDateRangeError | null {
+function rangeErrorFrom(current: TransactionSearchParams): CivilDateRangeError | null {
   const validation = validateCivilDateRange({ from: current.from, to: current.to });
   return validation.ok ? null : validation.reason;
 }

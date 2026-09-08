@@ -4,7 +4,7 @@ import {
   createTransactionInputSchema,
   transactionResponseSchema,
   transactionTypeIdSchema,
-} from './contracts';
+} from './transaction-schemas';
 
 const TRANSACTION = {
   transactionExternalId: '0199f9d2-1a2b-7c8d-9e0f-1234567890ab',

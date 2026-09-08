@@ -1,4 +1,4 @@
-import { submissionAttemptSchema, type SubmissionAttempt } from './contracts';
+import { submissionAttemptSchema, type SubmissionAttempt } from '../transaction-schemas';
 
 const STORAGE_KEY = 'biud:submission-attempt';
 
@@ -6,7 +6,7 @@ export function saveAttempt(attempt: SubmissionAttempt): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(attempt));
   } catch {
-    // storage unavailable — attempt lives in memory only
+    return;
   }
 }
 
@@ -25,6 +25,6 @@ export function clearAttempt(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch {
-    // storage unavailable
+    return;
   }
 }

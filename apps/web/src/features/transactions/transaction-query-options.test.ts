@@ -1,14 +1,14 @@
 import { focusManager, onlineManager, QueryClient, QueryObserver } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { TransactionsApiError, type TransactionsApi } from './api/client';
-import type { ListQuery, TransactionPage, TransactionResponse } from './contracts';
+import { TransactionsApiError, type TransactionsApi } from './api/transactions-api';
 import {
   listTransactionsQueryOptions,
   POLL_INTERVAL_MS,
   transactionDetailQueryOptions,
   transactionQueryKeys,
-} from './queries';
+} from './transaction-query-options';
+import type { ListQuery, TransactionPage, TransactionResponse } from './transaction-schemas';
 
 const QUERY: ListQuery = { page: 1, limit: 20 };
 const TRANSACTION_ID = '01999900-0000-7000-8000-aaa000000001';

@@ -1,10 +1,10 @@
-import type { TransactionResponse } from '../contracts';
 import {
   BUSINESS_TIME_ZONE_LABEL,
   formatCurrency,
   formatDateTime,
-  transactionTypeLabel,
-} from '../presentation';
+} from '../transaction-formatters';
+import { transactionTypeLabel } from '../transaction-labels';
+import type { TransactionResponse } from '../transaction-schemas';
 
 import { StatusBadge } from './status-badge';
 

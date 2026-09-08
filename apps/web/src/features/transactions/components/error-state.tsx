@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-import { Button } from '@/components/shared/button';
+import { Button } from '@/components/ui/button';
 
 type ErrorStateProps = {
   description: string;

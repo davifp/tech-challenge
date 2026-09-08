@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { DashboardShell } from '@/components/shared/dashboard-shell';
-import { Providers } from '@/components/shared/providers';
+import { Providers } from './providers';
+
+import { DashboardShell } from '@/components/layout/dashboard-shell';
 import '@/styles/globals.css';
 
 export const metadata = {

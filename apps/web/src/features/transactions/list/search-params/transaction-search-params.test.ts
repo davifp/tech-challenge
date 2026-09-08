@@ -8,22 +8,22 @@ import {
   changePage,
   clearFilters,
   hasActiveFilters,
-  parseTransactionsSearchParams,
+  parseTransactionSearchParams,
   replaceFilters,
   sanitizeReturnTo,
-  serializeTransactionsSearch,
+  serializeTransactionSearchParams,
   toListQuery,
-  type TransactionsSearch,
-} from './search';
+  type TransactionSearchParams,
+} from './transaction-search-params';
 
-const EMPTY_SEARCH: TransactionsSearch = { page: 1 };
+const EMPTY_SEARCH: TransactionSearchParams = { page: 1 };
 
 describe('web/transactions-search', () => {
   it('normaliza os filtros e a página vindos da URL, descartando valores inválidos', () => {
     const params = new URLSearchParams(
       'status=pending&transferTypeId=1&from=2026-09-05&to=2026-09-10&page=3',
     );
-    expect(parseTransactionsSearchParams(params)).toEqual({
+    expect(parseTransactionSearchParams(params)).toEqual({
       status: 'pending',
       transferTypeId: 1,
       from: '2026-09-05',
@@ -33,13 +33,13 @@ describe('web/transactions-search', () => {
     const invalid = new URLSearchParams(
       'status=processing&transferTypeId=99&from=ontem&to=&page=-3',
     );
-    expect(parseTransactionsSearchParams(invalid)).toEqual({ page: 1 });
-    expect(parseTransactionsSearchParams(new URLSearchParams('page=2.5'))).toEqual({ page: 1 });
-    expect(parseTransactionsSearchParams(new URLSearchParams('page=2abc'))).toEqual({ page: 1 });
+    expect(parseTransactionSearchParams(invalid)).toEqual({ page: 1 });
+    expect(parseTransactionSearchParams(new URLSearchParams('page=2.5'))).toEqual({ page: 1 });
+    expect(parseTransactionSearchParams(new URLSearchParams('page=2abc'))).toEqual({ page: 1 });
   });
 
   it('reinicia a página ao alterar ou limpar filtros', () => {
-    const previous: TransactionsSearch = {
+    const previous: TransactionSearchParams = {
       status: 'pending',
       transferTypeId: 1,
       from: '2026-09-05',
@@ -66,9 +66,9 @@ describe('web/transactions-search', () => {
   });
 
   it('serializa apenas o que precisa aparecer na URL, omitindo a primeira página', () => {
-    expect(serializeTransactionsSearch(EMPTY_SEARCH).toString()).toBe('');
+    expect(serializeTransactionSearchParams(EMPTY_SEARCH).toString()).toBe('');
     expect(
-      serializeTransactionsSearch({
+      serializeTransactionSearchParams({
         status: 'pending',
         transferTypeId: 1,
         from: '2026-09-05',
@@ -127,19 +127,19 @@ describe('web/transactions-search', () => {
   });
 
   it('aceita transferTypeId "1", "2", "3" e rejeita "4" e não-numéricos — TU-07/08', () => {
-    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=1'))).toMatchObject({
+    expect(parseTransactionSearchParams(new URLSearchParams('transferTypeId=1'))).toMatchObject({
       transferTypeId: 1,
     });
-    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=2'))).toMatchObject({
+    expect(parseTransactionSearchParams(new URLSearchParams('transferTypeId=2'))).toMatchObject({
       transferTypeId: 2,
     });
-    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=3'))).toMatchObject({
+    expect(parseTransactionSearchParams(new URLSearchParams('transferTypeId=3'))).toMatchObject({
       transferTypeId: 3,
     });
-    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=4'))).toEqual({
+    expect(parseTransactionSearchParams(new URLSearchParams('transferTypeId=4'))).toEqual({
       page: 1,
     });
-    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=abc'))).toEqual({
+    expect(parseTransactionSearchParams(new URLSearchParams('transferTypeId=abc'))).toEqual({
       page: 1,
     });
   });

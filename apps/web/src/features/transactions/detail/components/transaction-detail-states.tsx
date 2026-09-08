@@ -1,34 +1,17 @@
-'use client';
-
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useEffect, useId } from 'react';
+import { useId } from 'react';
 
-import { TransactionsApiError } from '../api/client';
-import { PollErrorBanner } from '../components/poll-error-banner';
-import { apiErrorMessage } from '../presentation';
-import { transactionDetailQueryOptions, transactionQueryKeys } from '../queries';
-import { isTerminalStatus } from '../reconcile';
+import { apiErrorMessage } from '../../transaction-error-messages';
 
-import { DetailLoadingSkeleton } from './components/detail-skeleton';
-import { TransactionDetail } from './components/transaction-detail';
-
-import { Button } from '@/components/shared/button';
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { Button } from '@/components/ui/button';
 
 const TRANSACTION_NOT_FOUND_CODE = 'TRANSACTION_NOT_FOUND';
-
-type TransactionDetailViewProps = {
-  backHref: string;
-  transactionExternalId: string;
-};
 
 type BackLinkProps = {
   href: string;
 };
 
-function BackLink({ href }: BackLinkProps) {
+export function BackLink({ href }: BackLinkProps) {
   return (
     <Link
       className="inline-flex h-9 items-center gap-1.5 rounded-full border border-outline-variant bg-surface-container-lowest px-4 text-[13px] font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
@@ -39,12 +22,7 @@ function BackLink({ href }: BackLinkProps) {
   );
 }
 
-type DetailHeaderProps = {
-  backHref: string;
-  id: string;
-};
-
-function DetailHeader({ backHref, id }: DetailHeaderProps) {
+export function TransactionDetailHeader({ backHref, id }: { backHref: string; id: string }) {
   return (
     <div className="flex flex-wrap items-center gap-4">
       <BackLink href={backHref} />
@@ -60,7 +38,7 @@ function DetailHeader({ backHref, id }: DetailHeaderProps) {
   );
 }
 
-function InvalidIdState({ backHref }: { backHref: string }) {
+export function InvalidTransactionIdState({ backHref }: { backHref: string }) {
   const titleId = useId();
   return (
     <div className="flex flex-col gap-6">
@@ -86,7 +64,7 @@ function InvalidIdState({ backHref }: { backHref: string }) {
   );
 }
 
-function NotFoundState({ backHref }: { backHref: string }) {
+export function TransactionNotFoundState({ backHref }: { backHref: string }) {
   const titleId = useId();
   return (
     <div className="flex flex-col gap-6">
@@ -110,13 +88,17 @@ function NotFoundState({ backHref }: { backHref: string }) {
   );
 }
 
-type ErrorStateProps = {
+type TransactionDetailErrorStateProps = {
   backHref: string;
   errorMessage: string;
   onRetry(): void;
 };
 
-function DetailErrorState({ backHref, errorMessage, onRetry }: ErrorStateProps) {
+export function TransactionDetailErrorState({
+  backHref,
+  errorMessage,
+  onRetry,
+}: TransactionDetailErrorStateProps) {
   const titleId = useId();
   return (
     <div className="flex flex-col gap-6">
@@ -137,64 +119,6 @@ function DetailErrorState({ backHref, errorMessage, onRetry }: ErrorStateProps) 
           Tentar novamente
         </Button>
       </section>
-    </div>
-  );
-}
-
-function errorMessageFrom(error: unknown): string {
-  if (error instanceof TransactionsApiError) return apiErrorMessage(error.code);
-  return apiErrorMessage('INTERNAL_ERROR');
-}
-
-function isNotFoundError(error: unknown): boolean {
-  return error instanceof TransactionsApiError && error.code === TRANSACTION_NOT_FOUND_CODE;
-}
-
-export function TransactionDetailView({
-  backHref,
-  transactionExternalId,
-}: TransactionDetailViewProps) {
-  const queryClient = useQueryClient();
-  const isValidId = UUID_PATTERN.test(transactionExternalId);
-  const query = useQuery({
-    ...transactionDetailQueryOptions(transactionExternalId),
-    enabled: isValidId,
-  });
-  const decisionVersion =
-    query.data && isTerminalStatus(query.data.transactionStatus.name)
-      ? `${query.data.transactionExternalId}:${query.data.transactionStatus.name}:${query.data.updatedAt}`
-      : undefined;
-
-  useEffect(() => {
-    if (!decisionVersion) return;
-    queryClient.removeQueries({ queryKey: transactionQueryKeys.lists, type: 'inactive' });
-    void queryClient.invalidateQueries({ queryKey: transactionQueryKeys.lists, type: 'active' });
-  }, [decisionVersion, queryClient]);
-
-  if (!isValidId) return <InvalidIdState backHref={backHref} />;
-  if (query.isLoading && !query.data) return <DetailLoadingSkeleton backHref={backHref} />;
-  if (query.isError && !query.data) {
-    if (isNotFoundError(query.error)) return <NotFoundState backHref={backHref} />;
-    return (
-      <DetailErrorState
-        backHref={backHref}
-        errorMessage={errorMessageFrom(query.error)}
-        onRetry={() => void query.refetch()}
-      />
-    );
-  }
-  if (!query.data) return <DetailLoadingSkeleton backHref={backHref} />;
-  const pollError = query.isError ? (
-    <PollErrorBanner
-      errorMessage={errorMessageFrom(query.error)}
-      onRetry={() => void query.refetch()}
-    />
-  ) : null;
-  return (
-    <div className="flex flex-col gap-6">
-      <DetailHeader backHref={backHref} id={transactionExternalId} />
-      {pollError}
-      <TransactionDetail transaction={query.data} />
     </div>
   );
 }
