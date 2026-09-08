@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { prismaTest } from '../helpers/prisma-test';
 
 const EXPECTED_STATUSES = ['pending', 'approved', 'rejected'] as const;
-const EXPECTED_TRANSFER_TYPE = 'transfer';
+const EXPECTED_TYPES = [
+  { id: 1, name: 'pix' },
+  { id: 2, name: 'ted' },
+  { id: 3, name: 'book_transfer' },
+] as const;
 const INIT_MIGRATION_SUFFIX = '_init';
 
 type MigrationRow = { migration_name: string; finished_at: Date | null };
@@ -25,9 +29,9 @@ describe('migrations and catalog seed', () => {
     expect(statuses.map((row) => row.name)).toEqual([...EXPECTED_STATUSES]);
   });
 
-  it('seeds TransactionType with at least the transfer entry', async () => {
+  it('seeds TransactionType with pix, ted and book_transfer', async () => {
     const types = await prismaTest.transactionType.findMany({ orderBy: { id: 'asc' } });
-    expect(types.length).toBeGreaterThanOrEqual(1);
-    expect(types[0]).toMatchObject({ id: 1, name: EXPECTED_TRANSFER_TYPE });
+    expect(types).toHaveLength(EXPECTED_TYPES.length);
+    expect(types).toEqual([...EXPECTED_TYPES]);
   });
 });

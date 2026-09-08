@@ -7,7 +7,9 @@ import {
   type TransactionStatusName,
 } from '../../../domain/transaction/transaction-status';
 import {
-  TRANSFER_TYPE_ID,
+  PIX_TYPE_ID,
+  TED_TYPE_ID,
+  BOOK_TRANSFER_TYPE_ID,
   type TransactionTypeId,
   type TransactionTypeName,
 } from '../../../domain/transaction/transaction-type';
@@ -21,7 +23,9 @@ const STATUS_NAME_BY_ID: Record<TransactionStatusId, TransactionStatusName> = {
 };
 
 const TYPE_NAME_BY_ID: Record<TransactionTypeId, TransactionTypeName> = {
-  [TRANSFER_TYPE_ID]: 'transfer',
+  [PIX_TYPE_ID]: 'pix',
+  [TED_TYPE_ID]: 'ted',
+  [BOOK_TRANSFER_TYPE_ID]: 'book_transfer',
 };
 
 export type TransactionResponse = {

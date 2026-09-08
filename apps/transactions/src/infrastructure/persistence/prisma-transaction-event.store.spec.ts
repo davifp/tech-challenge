@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createTransactionCreatedEvent } from '../../application/helpers/create-transaction-created-event';
 import { hashBody } from '../../application/helpers/hash-body';
 import { Transaction } from '../../domain/transaction/transaction';
-import { TRANSFER_TYPE_ID } from '../../domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../domain/transaction/transaction-type';
 import { Prisma } from '../../generated/prisma/client';
 
 import { PrismaTransactionEventStore } from './prisma-transaction-event.store';
@@ -18,7 +18,7 @@ function buildTransaction(): Transaction {
     accountExternalIdDebit: randomUUID(),
     accountExternalIdCredit: randomUUID(),
     value: 120,
-    transferTypeId: TRANSFER_TYPE_ID,
+    transferTypeId: PIX_TYPE_ID,
   });
 }
 

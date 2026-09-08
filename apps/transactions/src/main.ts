@@ -11,7 +11,8 @@ import { HttpExceptionFilter } from './infrastructure/http/filters/http-exceptio
 
 const OPENAPI_DOCS_PATH = 'api/docs';
 const OPENAPI_TITLE = 'Transactions API';
-const OPENAPI_DESCRIPTION = 'Financial transactions API. transferTypeId enum: 1 = transfer.';
+const OPENAPI_DESCRIPTION =
+  'Financial transactions API. transferTypeId: 1=pix, 2=ted, 3=book_transfer.';
 const OPENAPI_VERSION = '1.0.0';
 
 function buildOpenApiConfig(): ReturnType<DocumentBuilder['build']> {

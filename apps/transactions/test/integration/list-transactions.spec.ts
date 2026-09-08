@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   type ListTransactionsResponseBody,
@@ -7,7 +7,6 @@ import {
   TRANSACTION_RESPONSE_KEYS,
 } from '../helpers/http-contracts';
 import { createTimedTransactions, externalIds } from '../helpers/list-transactions.fixtures';
-import { prismaTest } from '../helpers/prisma-test';
 import { createTransactionsTestApp, type TransactionsTestApp } from '../helpers/test-app';
 import { createTransaction } from '../helpers/transaction.factory';
 
@@ -20,11 +19,6 @@ describe('GET /transactions', () => {
 
   afterAll(async () => {
     await testApp.app.close();
-  });
-
-  afterEach(async () => {
-    await prismaTest.transaction.deleteMany({ where: { transferTypeId: { not: 1 } } });
-    await prismaTest.transactionType.deleteMany({ where: { id: { not: 1 } } });
   });
 
   it('applies defaults and orders by createdAt descending', async () => {
@@ -56,7 +50,6 @@ describe('GET /transactions', () => {
 
   it('filters by transfer type', async () => {
     const records = await createTimedTransactions(2);
-    await prismaTest.transactionType.create({ data: { id: 2, name: 'pix' } });
     const otherType = await createTransaction({ transferTypeId: 2 });
     const response = await request(testApp.app.getHttpServer())
       .get('/transactions')
@@ -65,7 +58,21 @@ describe('GET /transactions', () => {
     const body = responseBody<ListTransactionsResponseBody>(response);
     expect(externalIds(body.items)).toStrictEqual(externalIds(records.toReversed()));
     expect(externalIds(body.items)).not.toContain(otherType.transactionExternalId);
-    expect(body.items[0]?.transactionType).toStrictEqual({ name: 'transfer' });
+    expect(body.items[0]?.transactionType).toStrictEqual({ name: 'pix' });
+  });
+
+  it('filters by type and status combined', async () => {
+    const approved = await createTransaction({ transferTypeId: 2, transactionStatusId: 2 });
+    await createTransaction({ transferTypeId: 2, transactionStatusId: 1 });
+    await createTransaction({ transferTypeId: 1, transactionStatusId: 2 });
+    const response = await request(testApp.app.getHttpServer())
+      .get('/transactions')
+      .query({ transferTypeId: 2, status: 'approved' })
+      .expect(200);
+    const body = responseBody<ListTransactionsResponseBody>(response);
+    expect(externalIds(body.items)).toStrictEqual([approved.transactionExternalId]);
+    expect(body.items[0]?.transactionType).toStrictEqual({ name: 'ted' });
+    expect(body.items[0]?.transactionStatus).toStrictEqual({ name: 'approved' });
   });
 
   it('includes both boundaries of a createdAt range', async () => {

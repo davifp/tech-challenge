@@ -21,14 +21,14 @@ describe('POST /transactions', () => {
     await testApp.app.close();
   });
 
-  it('creates and persists a complete pending transaction', async () => {
+  it('creates and persists a complete pending transaction with pix type', async () => {
     const input = buildTransactionBody(120.5);
     const response = await postTransaction(testApp.app, input).expect(201);
     const body = responseBody<TransactionResponseBody>(response);
     expect(uuidVersion(body.transactionExternalId)).toBe(7);
     expect(body).toStrictEqual({
       transactionExternalId: body.transactionExternalId,
-      transactionType: { name: 'transfer' },
+      transactionType: { name: 'pix' },
       transactionStatus: { name: 'pending' },
       value: input.value,
       createdAt: expect.any(String),
@@ -43,6 +43,33 @@ describe('POST /transactions', () => {
     expect(persisted).toMatchObject({ transactionStatusId: 1, transferTypeId: 1 });
     expect(persisted.createdAt).toBeInstanceOf(Date);
     expect(persisted.updatedAt).toBeInstanceOf(Date);
+  });
+
+  it('creates a transaction with ted type', async () => {
+    const input = { ...buildTransactionBody(50), transferTypeId: 2 };
+    const response = await postTransaction(testApp.app, input).expect(201);
+    const body = responseBody<TransactionResponseBody>(response);
+    expect(body.transactionType).toStrictEqual({ name: 'ted' });
+  });
+
+  it('creates a transaction with book_transfer type', async () => {
+    const input = { ...buildTransactionBody(75), transferTypeId: 3 };
+    const response = await postTransaction(testApp.app, input).expect(201);
+    const body = responseBody<TransactionResponseBody>(response);
+    expect(body.transactionType).toStrictEqual({ name: 'book_transfer' });
+  });
+
+  it('returns VALIDATION_ERROR for transferTypeId outside {1,2,3}', async () => {
+    const input = { ...buildTransactionBody(100), transferTypeId: 4 };
+    const response = await postTransaction(testApp.app, input).expect(400);
+    const body = responseBody<ErrorEnvelopeBody>(response);
+    expect(body).toStrictEqual({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid request payload',
+        details: expect.arrayContaining([{ path: 'transferTypeId', message: expect.any(String) }]),
+      },
+    });
   });
 
   it('returns VALIDATION_ERROR and does not persist an invalid body', async () => {

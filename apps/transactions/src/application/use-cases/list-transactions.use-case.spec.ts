@@ -19,7 +19,7 @@ function buildRepository(result: ListTransactionsResult = EMPTY_RESULT): Transac
 }
 
 function buildCatalog(): TransactionCatalogRepository {
-  return { findTransferTypeById: vi.fn().mockResolvedValue({ id: 1, name: 'transfer' }) };
+  return { findTransferTypeById: vi.fn().mockResolvedValue({ id: 1, name: 'pix' }) };
 }
 
 describe('ListTransactionsUseCase', () => {

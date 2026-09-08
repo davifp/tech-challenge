@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
 import { Transaction } from '../../../domain/transaction/transaction';
-import { TRANSFER_TYPE_ID } from '../../../domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../../domain/transaction/transaction-type';
 
 import { toTransactionResponse } from './transaction-response.mapper';
 
@@ -13,7 +13,7 @@ describe('toTransactionResponse', () => {
       accountExternalIdDebit: randomUUID(),
       accountExternalIdCredit: randomUUID(),
       value: 120.5,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     const response = toTransactionResponse(transaction);
     expect(Object.keys(response).sort()).toEqual(
@@ -28,7 +28,7 @@ describe('toTransactionResponse', () => {
         'value',
       ].sort(),
     );
-    expect(response.transactionType).toEqual({ name: 'transfer' });
+    expect(response.transactionType).toEqual({ name: 'pix' });
     expect(response.transactionStatus).toEqual({ name: 'pending' });
     expect(response.accountExternalIdDebit).toBe(transaction.accountExternalIdDebit);
     expect(response.accountExternalIdCredit).toBe(transaction.accountExternalIdCredit);
@@ -42,7 +42,7 @@ describe('toTransactionResponse', () => {
       accountExternalIdDebit: randomUUID(),
       accountExternalIdCredit: randomUUID(),
       value: 120,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     const response = toTransactionResponse(transaction);
     expect(response.value).toBe(120);

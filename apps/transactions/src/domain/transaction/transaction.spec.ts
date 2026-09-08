@@ -6,7 +6,7 @@ import { InvalidTransactionError } from '../errors/invalid-transaction.error';
 
 import { Transaction, type CreatePendingTransactionInput } from './transaction';
 import { PENDING_STATUS_ID } from './transaction-status';
-import { TRANSFER_TYPE_ID } from './transaction-type';
+import { PIX_TYPE_ID } from './transaction-type';
 
 const UUID_V7_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -17,7 +17,7 @@ function buildInput(
     accountExternalIdDebit: randomUUID(),
     accountExternalIdCredit: randomUUID(),
     value: 120.5,
-    transferTypeId: TRANSFER_TYPE_ID,
+    transferTypeId: PIX_TYPE_ID,
     ...overrides,
   };
 }

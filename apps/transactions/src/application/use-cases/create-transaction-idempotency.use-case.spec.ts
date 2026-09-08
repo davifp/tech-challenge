@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { buildCommand, buildRepositories } from '../../../test/helpers/create-transaction.fixtures';
 import { Transaction } from '../../domain/transaction/transaction';
-import { TRANSFER_TYPE_ID } from '../../domain/transaction/transaction-type';
+import { PIX_TYPE_ID } from '../../domain/transaction/transaction-type';
 import { IdempotencyKeyConflictError } from '../errors/idempotency-key-conflict.error';
 import { hashBody } from '../helpers/hash-body';
 
@@ -16,7 +16,7 @@ describe('CreateTransactionUseCase (idempotency)', () => {
       accountExternalIdDebit: command.accountExternalIdDebit,
       accountExternalIdCredit: command.accountExternalIdCredit,
       value: command.value,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     vi.mocked(transactionEventStore.findByIdempotencyKey).mockResolvedValue({
       transaction: existing,
@@ -37,7 +37,7 @@ describe('CreateTransactionUseCase (idempotency)', () => {
       accountExternalIdDebit: command.accountExternalIdDebit,
       accountExternalIdCredit: command.accountExternalIdCredit,
       value: 999,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     vi.mocked(transactionEventStore.findByIdempotencyKey).mockResolvedValue({
       transaction: existing,
@@ -55,7 +55,7 @@ describe('CreateTransactionUseCase (idempotency)', () => {
       accountExternalIdDebit: command.accountExternalIdDebit,
       accountExternalIdCredit: command.accountExternalIdCredit,
       value: command.value,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     vi.mocked(transactionEventStore.savePending).mockResolvedValue({
       outcome: 'replayed',
@@ -76,7 +76,7 @@ describe('CreateTransactionUseCase (idempotency)', () => {
       accountExternalIdDebit: command.accountExternalIdDebit,
       accountExternalIdCredit: command.accountExternalIdCredit,
       value: 999,
-      transferTypeId: TRANSFER_TYPE_ID,
+      transferTypeId: PIX_TYPE_ID,
     });
     vi.mocked(transactionEventStore.savePending).mockResolvedValue({
       outcome: 'replayed',
