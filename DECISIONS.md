@@ -236,3 +236,10 @@ página completa no acesso direto ou após atualizar a página.
 **Por quê:** o modal mantém o contexto da listagem, enquanto a rota permite acesso direto, atualização
 da página e navegação pelo histórico do navegador. Um modal controlado apenas por estado perderia
 esses comportamentos.
+
+## 22. Escritas e Leituras Concorrentes
+
+Primeiro, eu tentaria resolver da forma mais simples. Usaria o ID da entidade como chave da mensagem no Kafka, para que os eventos relacionados sejam enviados para a mesma partição e processados em ordem.
+Depois, faria testes de concorrência e de carga para verificar se isso é suficiente. Se ainda houvesse conflito nas atualizações, usaria bloqueio otimista, adicionando um campo de versão na entidade. Assim, uma atualização feita com uma versão antiga seria rejeitada.
+Também colocaria um identificador único em cada evento e faria o consumidor registrar quais mensagens já foram processadas. Isso evita executar a mesma operação mais de uma vez, porque a chave do Kafka organiza as mensagens, mas não remove duplicadas automaticamente.
+Se o volume de leituras fosse muito maior que o de escritas, poderia considerar CQRS para separar os dois modelos. Porém, deixaria isso como última opção, porque aumenta bastante a complexidade e não elimina sozinho os conflitos entre escritas.
