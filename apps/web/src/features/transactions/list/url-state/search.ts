@@ -1,15 +1,20 @@
-import { transactionStatusSchema, type ListQuery, type TransactionStatus } from '../../contracts';
+import {
+  transactionStatusSchema,
+  transactionTypeIdSchema,
+  type ListQuery,
+  type TransactionStatus,
+  type TransactionTypeId,
+} from '../../contracts';
 import { FIRST_PAGE, PAGE_SIZE } from '../pagination';
 
 import { endOfBrasiliaCivilDayIso, isCivilDate, startOfBrasiliaCivilDayIso } from './date-range';
 
-const TRANSFER_TYPE_ID = 1;
 const POSITIVE_INTEGER_PATTERN = /^[1-9]\d*$/;
 export const TRANSACTIONS_LIST_PATH = '/transactions';
 
 export type TransactionsSearch = {
   status?: TransactionStatus;
-  transferTypeId?: 1;
+  transferTypeId?: TransactionTypeId;
   from?: string;
   to?: string;
   page: number;
@@ -30,8 +35,12 @@ function normalizeStatus(candidate: string | null | undefined): TransactionStatu
   return parsed.success ? parsed.data : undefined;
 }
 
-function normalizeTransferTypeId(candidate: string | null | undefined): 1 | undefined {
-  return candidate === String(TRANSFER_TYPE_ID) ? TRANSFER_TYPE_ID : undefined;
+function normalizeTransferTypeId(
+  candidate: string | null | undefined,
+): TransactionTypeId | undefined {
+  if (!candidate) return undefined;
+  const parsed = transactionTypeIdSchema.safeParse(Number(candidate));
+  return parsed.success ? parsed.data : undefined;
 }
 
 function normalizeCivilDate(candidate: string | null | undefined): string | undefined {

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
-import type { TransactionStatus } from '../../contracts';
+import type { TransactionStatus, TransactionTypeId } from '../../contracts';
 import { validateCivilDateRange, type CivilDateRangeError } from '../url-state/date-range';
 import { hasActiveFilters, type TransactionsSearch } from '../url-state/search';
 
@@ -11,12 +11,13 @@ import { IconFilter } from '@/components/shared/icons';
 
 type TransactionsFiltersProps = {
   current: TransactionsSearch;
-  onApply(patch: Pick<TransactionsSearch, 'status' | 'from' | 'to'>): void;
+  onApply(patch: Pick<TransactionsSearch, 'status' | 'transferTypeId' | 'from' | 'to'>): void;
   onClear(): void;
 };
 
 type FiltersFormState = {
   status: TransactionStatus | '';
+  transferTypeId: TransactionTypeId | '';
   from: string;
   to: string;
 };
@@ -25,6 +26,12 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: TransactionStatus; label: string }>
   { value: 'pending', label: 'Pendente' },
   { value: 'approved', label: 'Aprovada' },
   { value: 'rejected', label: 'Rejeitada' },
+];
+
+const TYPE_OPTIONS: ReadonlyArray<{ value: TransactionTypeId; label: string }> = [
+  { value: 1, label: 'Pix' },
+  { value: 2, label: 'TED' },
+  { value: 3, label: 'Book Transfer' },
 ];
 
 const RANGE_ERROR_MESSAGES: Record<CivilDateRangeError, string> = {
@@ -39,6 +46,7 @@ const INPUT_BASE =
 function buildFormState(current: TransactionsSearch): FiltersFormState {
   return {
     status: current.status ?? '',
+    transferTypeId: current.transferTypeId ?? '',
     from: current.from ?? '',
     to: current.to ?? '',
   };
@@ -75,12 +83,17 @@ export function TransactionsFilters({ current, onApply, onClear }: TransactionsF
       return;
     }
     setRangeError(null);
-    onApply({ status: formState.status || undefined, from, to });
+    onApply({
+      status: formState.status || undefined,
+      transferTypeId: formState.transferTypeId || undefined,
+      from,
+      to,
+    });
   }
 
   function handleClear() {
     setRangeError(null);
-    setFormState({ status: '', from: '', to: '' });
+    setFormState({ status: '', transferTypeId: '', from: '', to: '' });
     onClear();
   }
 
@@ -93,7 +106,7 @@ export function TransactionsFilters({ current, onApply, onClear }: TransactionsF
       onSubmit={handleSubmit}
     >
       <div className="grid gap-3 md:grid-cols-12 md:items-end">
-        <label className="flex flex-col gap-1.5 text-[13px] font-medium text-on-surface-variant md:col-span-4">
+        <label className="flex flex-col gap-1.5 text-[13px] font-medium text-on-surface-variant md:col-span-3">
           Status
           <select
             autoComplete="off"
@@ -116,6 +129,31 @@ export function TransactionsFilters({ current, onApply, onClear }: TransactionsF
           </select>
         </label>
         <label className="flex flex-col gap-1.5 text-[13px] font-medium text-on-surface-variant md:col-span-3">
+          Tipo de transferência
+          <select
+            autoComplete="off"
+            className={INPUT_BASE}
+            name="transferTypeId"
+            onChange={(event) =>
+              setFormState((previous) => ({
+                ...previous,
+                transferTypeId:
+                  event.target.value === ''
+                    ? ''
+                    : (Number(event.target.value) as TransactionTypeId),
+              }))
+            }
+            value={formState.transferTypeId}
+          >
+            <option value="">Todos os tipos</option>
+            {TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5 text-[13px] font-medium text-on-surface-variant md:col-span-2">
           Início (Horário de Brasília)
           <input
             aria-describedby={rangeError ? rangeErrorId : undefined}
@@ -131,7 +169,7 @@ export function TransactionsFilters({ current, onApply, onClear }: TransactionsF
             value={formState.from}
           />
         </label>
-        <label className="flex flex-col gap-1.5 text-[13px] font-medium text-on-surface-variant md:col-span-3">
+        <label className="flex flex-col gap-1.5 text-[13px] font-medium text-on-surface-variant md:col-span-2">
           Fim (Horário de Brasília)
           <input
             aria-describedby={rangeError ? rangeErrorId : undefined}

@@ -31,7 +31,7 @@ describe('web/transactions-search', () => {
       page: 3,
     });
     const invalid = new URLSearchParams(
-      'status=processing&transferTypeId=2&from=ontem&to=&page=-3',
+      'status=processing&transferTypeId=99&from=ontem&to=&page=-3',
     );
     expect(parseTransactionsSearchParams(invalid)).toEqual({ page: 1 });
     expect(parseTransactionsSearchParams(new URLSearchParams('page=2.5'))).toEqual({ page: 1 });
@@ -124,6 +124,24 @@ describe('web/transactions-search', () => {
   it('reconhece quando há filtros ativos para exibir a limpeza no estado vazio', () => {
     expect(hasActiveFilters(EMPTY_SEARCH)).toBe(false);
     expect(hasActiveFilters({ status: 'approved', page: 1 })).toBe(true);
+  });
+
+  it('aceita transferTypeId "1", "2", "3" e rejeita "4" e não-numéricos — TU-07/08', () => {
+    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=1'))).toMatchObject({
+      transferTypeId: 1,
+    });
+    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=2'))).toMatchObject({
+      transferTypeId: 2,
+    });
+    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=3'))).toMatchObject({
+      transferTypeId: 3,
+    });
+    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=4'))).toEqual({
+      page: 1,
+    });
+    expect(parseTransactionsSearchParams(new URLSearchParams('transferTypeId=abc'))).toEqual({
+      page: 1,
+    });
   });
 
   it('calcula a última página para canonicalizar URLs fora do total', () => {
