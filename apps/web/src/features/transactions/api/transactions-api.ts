@@ -9,7 +9,7 @@ import {
   type SubmissionAttempt,
   type TransactionPage,
   type TransactionResponse,
-} from '../contracts';
+} from '../transaction-schemas';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
 

@@ -3,15 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type * as TransactionsApiModule from '../api/client';
-import { TransactionsApiError } from '../api/client';
-import type { TransactionResponse } from '../contracts';
+import type * as TransactionsApiModule from '../api/transactions-api';
+import { TransactionsApiError } from '../api/transactions-api';
+import type { TransactionResponse } from '../transaction-schemas';
 
 const createSpy = vi.hoisted(() => vi.fn());
 const pushSpy = vi.hoisted(() => vi.fn());
 
-vi.mock('../api/client', async () => {
-  const actual = await vi.importActual<typeof TransactionsApiModule>('../api/client');
+vi.mock('../api/transactions-api', async () => {
+  const actual = await vi.importActual<typeof TransactionsApiModule>('../api/transactions-api');
   return {
     ...actual,
     transactionsApi: { list: vi.fn(), get: vi.fn(), create: createSpy },
@@ -22,7 +22,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushSpy }),
 }));
 
-import { CreateTransactionView } from './view';
+import { CreateTransactionView } from './create-transaction-view';
 
 const DEBIT_UUID = '0199f9c2-1a2b-7c8d-9e0f-100000000001';
 const CREDIT_UUID = '0199f9c2-1a2b-7c8d-9e0f-200000000002';

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
 
-import { CreateTransactionView } from './view';
+import { CreateTransactionView } from './create-transaction-view';
 
 function CloseIcon() {
   return (

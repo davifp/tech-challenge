@@ -1,7 +1,7 @@
-import type { TransactionStatus } from '../contracts';
-import { transactionStatusLabel } from '../presentation';
+import { transactionStatusLabel } from '../transaction-labels';
+import type { TransactionStatus } from '../transaction-schemas';
 
-import { IconCheck, IconClock, IconClose } from '@/components/shared/icons';
+import { IconCheck, IconClock, IconClose } from '@/components/ui/icons';
 
 type StatusBadgeSize = 'sm' | 'md';
 

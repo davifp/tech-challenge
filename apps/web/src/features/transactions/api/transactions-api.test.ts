@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { ListQuery, SubmissionAttempt } from '../contracts';
+import type { ListQuery, SubmissionAttempt } from '../transaction-schemas';
 
-import { createTransactionsApi, TransactionsApiError } from './client';
+import { createTransactionsApi, TransactionsApiError } from './transactions-api';
 
 const API_ORIGIN = 'http://localhost:3001';
 const TRANSACTION = {

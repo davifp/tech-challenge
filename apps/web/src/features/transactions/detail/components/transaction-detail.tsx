@@ -2,13 +2,13 @@ import type { ReactNode } from 'react';
 
 import { CopyIdentifierButton } from '../../components/copy-identifier-button';
 import { StatusBadge } from '../../components/status-badge';
-import type { TransactionResponse } from '../../contracts';
 import {
   BUSINESS_TIME_ZONE_LABEL,
   formatCurrency,
   formatDateTime,
-  transactionTypeLabel,
-} from '../../presentation';
+} from '../../transaction-formatters';
+import { transactionTypeLabel } from '../../transaction-labels';
+import type { TransactionResponse } from '../../transaction-schemas';
 
 type TransactionDetailProps = {
   transaction: TransactionResponse;

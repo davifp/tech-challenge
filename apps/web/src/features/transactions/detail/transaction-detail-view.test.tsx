@@ -3,10 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type * as TransactionsApiModule from '../api/client';
-import { TransactionsApiError } from '../api/client';
-import type { TransactionResponse } from '../contracts';
-import { transactionQueryKeys } from '../queries';
+import type * as TransactionsApiModule from '../api/transactions-api';
+import { TransactionsApiError } from '../api/transactions-api';
+import { transactionQueryKeys } from '../transaction-query-options';
+import type { TransactionResponse } from '../transaction-schemas';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -16,8 +16,8 @@ vi.mock('next/navigation', () => ({
 
 const getSpy = vi.hoisted(() => vi.fn());
 
-vi.mock('../api/client', async () => {
-  const actual = await vi.importActual<typeof TransactionsApiModule>('../api/client');
+vi.mock('../api/transactions-api', async () => {
+  const actual = await vi.importActual<typeof TransactionsApiModule>('../api/transactions-api');
   return {
     ...actual,
     transactionsApi: {
@@ -28,7 +28,7 @@ vi.mock('../api/client', async () => {
   };
 });
 
-import { TransactionDetailView } from './view';
+import { TransactionDetailView } from './transaction-detail-view';
 
 const VALID_ID = '01999900-0000-7000-8000-000000000001';
 const BACK_HREF = '/transactions?status=pending&page=2';

@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import type { TransactionResponse } from '../contracts';
+import type { TransactionResponse } from '../transaction-schemas';
 
 import { FeedbackMessage } from './feedback-message';
 import { TransactionPresentation } from './transaction-presentation';

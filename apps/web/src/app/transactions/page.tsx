@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 
 import { TransactionsListLoadingView } from '@/features/transactions/list/loading-view';
-import { TransactionsListView } from '@/features/transactions/list/view';
+import { TransactionsListView } from '@/features/transactions/list/transactions-list-view';
 
 export default function TransactionsPage() {
   return (

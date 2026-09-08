@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { IconPlus } from '@/components/shared/icons';
+import { IconPlus } from '@/components/ui/icons';
 
 export function TransactionsHeader() {
   return (

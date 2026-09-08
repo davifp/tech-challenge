@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 
 import { DetailLoadingSkeleton } from '@/features/transactions/detail/components/detail-skeleton';
-import { TransactionDetailView } from '@/features/transactions/detail/view';
-import { sanitizeReturnTo } from '@/features/transactions/list/url-state/search';
+import { TransactionDetailView } from '@/features/transactions/detail/transaction-detail-view';
+import { sanitizeReturnTo } from '@/features/transactions/list/search-params/transaction-search-params';
 
 type PageProps = {
   params: Promise<{ transactionExternalId: string }>;

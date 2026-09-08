@@ -2,12 +2,16 @@ import Link from 'next/link';
 
 import { CopyIdentifierButton } from '../../components/copy-identifier-button';
 import { StatusBadge } from '../../components/status-badge';
-import type { TransactionResponse } from '../../contracts';
-import { formatCurrency, formatDateTime, transactionTypeLabel } from '../../presentation';
-import { buildTransactionDetailHref, type TransactionsSearch } from '../url-state/search';
+import { formatCurrency, formatDateTime } from '../../transaction-formatters';
+import { transactionTypeLabel } from '../../transaction-labels';
+import type { TransactionResponse } from '../../transaction-schemas';
+import {
+  buildTransactionDetailHref,
+  type TransactionSearchParams,
+} from '../search-params/transaction-search-params';
 
 type TransactionsListProps = {
-  currentSearch: TransactionsSearch;
+  currentSearch: TransactionSearchParams;
   items: ReadonlyArray<TransactionResponse>;
 };
 

@@ -1,4 +1,8 @@
-import type { TransactionPage, TransactionResponse, TransactionStatus } from './contracts';
+import type {
+  TransactionPage,
+  TransactionResponse,
+  TransactionStatus,
+} from './transaction-schemas';
 
 const TERMINAL_STATUSES: ReadonlySet<TransactionStatus> = new Set(['approved', 'rejected']);
 

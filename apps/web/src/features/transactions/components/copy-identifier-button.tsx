@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { IconCheck, IconCopy } from '@/components/shared/icons';
+import { IconCheck, IconCopy } from '@/components/ui/icons';
 
 type CopyIdentifierButtonProps = {
   label: string;

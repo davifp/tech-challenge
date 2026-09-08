@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createTransactionFormSchema } from './form-schema';
+import { createTransactionFormSchema } from './create-transaction-form-schema';
 
 const DEBIT_UUID = '0199f9c2-1a2b-7c8d-9e0f-100000000001';
 const CREDIT_UUID = '0199f9c2-1a2b-7c8d-9e0f-200000000002';

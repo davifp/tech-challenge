@@ -4,9 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type * as TransactionsApiModule from '../api/client';
-import { TransactionsApiError } from '../api/client';
-import type { TransactionPage, TransactionResponse, TransactionStatus } from '../contracts';
+import type * as TransactionsApiModule from '../api/transactions-api';
+import { TransactionsApiError } from '../api/transactions-api';
+import type {
+  TransactionPage,
+  TransactionResponse,
+  TransactionStatus,
+} from '../transaction-schemas';
 
 const routerMock = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }));
 
@@ -23,8 +27,8 @@ vi.mock('next/navigation', () => ({
 
 const listSpy = vi.hoisted(() => vi.fn());
 
-vi.mock('../api/client', async () => {
-  const actual = await vi.importActual<typeof TransactionsApiModule>('../api/client');
+vi.mock('../api/transactions-api', async () => {
+  const actual = await vi.importActual<typeof TransactionsApiModule>('../api/transactions-api');
   return {
     ...actual,
     transactionsApi: {
@@ -35,7 +39,7 @@ vi.mock('../api/client', async () => {
   };
 });
 
-import { TransactionsListView } from './view';
+import { TransactionsListView } from './transactions-list-view';
 
 function buildTransaction(index: number, status: TransactionStatus): TransactionResponse {
   const suffix = String(index).padStart(12, '0');

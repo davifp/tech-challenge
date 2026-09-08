@@ -1,6 +1,6 @@
 import { TZDate } from '@date-fns/tz';
 
-import { BUSINESS_TIME_ZONE } from '../../presentation';
+import { BUSINESS_TIME_ZONE } from '../../transaction-formatters';
 
 const CIVIL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MILLISECOND = 1;

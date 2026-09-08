@@ -4,7 +4,7 @@ import {
   type ListQuery,
   type TransactionStatus,
   type TransactionTypeId,
-} from '../../contracts';
+} from '../../transaction-schemas';
 import { FIRST_PAGE, PAGE_SIZE } from '../pagination';
 
 import { endOfBrasiliaCivilDayIso, isCivilDate, startOfBrasiliaCivilDayIso } from './date-range';
@@ -12,7 +12,7 @@ import { endOfBrasiliaCivilDayIso, isCivilDate, startOfBrasiliaCivilDayIso } fro
 const POSITIVE_INTEGER_PATTERN = /^[1-9]\d*$/;
 export const TRANSACTIONS_LIST_PATH = '/transactions';
 
-export type TransactionsSearch = {
+export type TransactionSearchParams = {
   status?: TransactionStatus;
   transferTypeId?: TransactionTypeId;
   from?: string;
@@ -20,11 +20,11 @@ export type TransactionsSearch = {
   page: number;
 };
 
-type ReadableSearchParams = {
+type SearchParamsReader = {
   get(name: string): string | null;
 };
 
-function readParam(params: ReadableSearchParams, name: string): string | null {
+function readParam(params: SearchParamsReader, name: string): string | null {
   const value = params.get(name);
   return value === '' ? null : value;
 }
@@ -55,7 +55,7 @@ function normalizePage(candidate: string | null | undefined): number {
   return parsed;
 }
 
-export function parseTransactionsSearchParams(params: ReadableSearchParams): TransactionsSearch {
+export function parseTransactionSearchParams(params: SearchParamsReader): TransactionSearchParams {
   return {
     status: normalizeStatus(readParam(params, 'status')),
     transferTypeId: normalizeTransferTypeId(readParam(params, 'transferTypeId')),
@@ -65,7 +65,7 @@ export function parseTransactionsSearchParams(params: ReadableSearchParams): Tra
   };
 }
 
-export function serializeTransactionsSearch(search: TransactionsSearch): URLSearchParams {
+export function serializeTransactionSearchParams(search: TransactionSearchParams): URLSearchParams {
   const params = new URLSearchParams();
   if (search.status) params.set('status', search.status);
   if (search.transferTypeId) params.set('transferTypeId', String(search.transferTypeId));
@@ -76,9 +76,9 @@ export function serializeTransactionsSearch(search: TransactionsSearch): URLSear
 }
 
 export function replaceFilters(
-  previous: TransactionsSearch,
-  patch: Partial<Pick<TransactionsSearch, 'status' | 'transferTypeId' | 'from' | 'to'>>,
-): TransactionsSearch {
+  previous: TransactionSearchParams,
+  patch: Partial<Pick<TransactionSearchParams, 'status' | 'transferTypeId' | 'from' | 'to'>>,
+): TransactionSearchParams {
   return {
     status: 'status' in patch ? patch.status : previous.status,
     transferTypeId: 'transferTypeId' in patch ? patch.transferTypeId : previous.transferTypeId,
@@ -88,20 +88,23 @@ export function replaceFilters(
   };
 }
 
-export function clearFilters(): TransactionsSearch {
+export function clearFilters(): TransactionSearchParams {
   return { page: FIRST_PAGE };
 }
 
-export function changePage(previous: TransactionsSearch, page: number): TransactionsSearch {
+export function changePage(
+  previous: TransactionSearchParams,
+  page: number,
+): TransactionSearchParams {
   const safePage = page < FIRST_PAGE ? FIRST_PAGE : Math.floor(page);
   return { ...previous, page: safePage };
 }
 
-export function hasActiveFilters(search: TransactionsSearch): boolean {
+export function hasActiveFilters(search: TransactionSearchParams): boolean {
   return Boolean(search.status || search.transferTypeId || search.from || search.to);
 }
 
-export function toListQuery(search: TransactionsSearch): ListQuery {
+export function toListQuery(search: TransactionSearchParams): ListQuery {
   const query: ListQuery = { page: search.page, limit: PAGE_SIZE };
   if (search.status) query.status = search.status;
   if (search.transferTypeId) query.transferTypeId = search.transferTypeId;
@@ -110,15 +113,15 @@ export function toListQuery(search: TransactionsSearch): ListQuery {
   return query;
 }
 
-export function buildTransactionsHref(search: TransactionsSearch): string {
-  const params = serializeTransactionsSearch(search);
+export function buildTransactionsHref(search: TransactionSearchParams): string {
+  const params = serializeTransactionSearchParams(search);
   const suffix = params.toString();
   return suffix ? `${TRANSACTIONS_LIST_PATH}?${suffix}` : TRANSACTIONS_LIST_PATH;
 }
 
 export function buildTransactionDetailHref(
   transactionExternalId: string,
-  currentSearch: TransactionsSearch,
+  currentSearch: TransactionSearchParams,
 ): string {
   const returnTo = buildTransactionsHref(currentSearch);
   const params = new URLSearchParams();
@@ -132,6 +135,6 @@ export function sanitizeReturnTo(candidate: string | null | undefined): string {
   if (!candidate || !candidate.startsWith(TRANSACTIONS_LIST_PATH)) return TRANSACTIONS_LIST_PATH;
   const [pathname, queryString = ''] = candidate.split('?');
   if (pathname !== TRANSACTIONS_LIST_PATH) return TRANSACTIONS_LIST_PATH;
-  const search = parseTransactionsSearchParams(new URLSearchParams(queryString));
+  const search = parseTransactionSearchParams(new URLSearchParams(queryString));
   return buildTransactionsHref(search);
 }
