@@ -9,10 +9,14 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format:check": "turbo run format:check",
-    "test": "turbo run test",
+    "test": "node scripts/run-with-test-infrastructure.mjs pnpm test:check",
+    "test:check": "turbo run test --concurrency=1",
     "build": "turbo run build",
-    "test:e2e": "turbo run test:e2e",
-    "quality": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build && pnpm test:e2e",
+    "test:e2e": "node scripts/run-with-test-infrastructure.mjs pnpm test:e2e:check",
+    "test:e2e:check": "turbo run test:e2e",
+    "quality": "node scripts/run-with-test-infrastructure.mjs pnpm quality:check",
+    "quality:check": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test:check && pnpm build && pnpm test:e2e:check",
+    "dev": "turbo run dev",
     "prepare": "lefthook install"
   },
   "lint-staged": {

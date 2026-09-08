@@ -23,7 +23,9 @@ export class KafkaEventProbe {
     await Promise.all(subscribedTopics.map((topic) => this.ensureTopic(topic)));
     await this.consumer.connect();
     await this.consumer.subscribe({ topics: subscribedTopics, fromBeginning: false });
+    const groupJoined = this.waitForGroupJoin();
     await this.consumer.run({ eachMessage: (payload) => this.capture(payload) });
+    await groupJoined;
   }
 
   waitForKey(key: string): Promise<ProbedKafkaMessage> {
@@ -37,6 +39,15 @@ export class KafkaEventProbe {
   async disconnect(): Promise<void> {
     this.buffer.rejectWaiters();
     await this.consumer.disconnect();
+  }
+
+  private waitForGroupJoin(): Promise<void> {
+    return new Promise((resolve) => {
+      const removeListener = this.consumer.on(this.consumer.events.GROUP_JOIN, () => {
+        removeListener();
+        resolve();
+      });
+    });
   }
 
   private async ensureTopic(topic: string): Promise<void> {
