@@ -1,14 +1,14 @@
 import { Logger } from '@nestjs/common';
 
-import { TransactionDecisionConflictError } from '../../application/errors/transaction-decision-conflict.error';
-import { type DeadLetterPublisher } from '../../application/ports/dead-letter-publisher.port';
-import { type ApplyTransactionStatusUseCase } from '../../application/use-cases/apply-transaction-status.use-case';
+import { TransactionDecisionConflictError } from '../../../application/errors/transaction-decision-conflict.error';
+import { type DeadLetterPublisher } from '../../../application/ports/dead-letter-publisher.port';
+import { type ApplyTransactionStatusUseCase } from '../../../application/use-cases/apply-transaction-status.use-case';
+import { type KafkaRecord } from '../shared/kafka-record';
+import { classifyKafkaFailure, wait } from '../shared/kafka-retry-policy';
+import { PermanentKafkaMessageError } from '../shared/permanent-kafka-message.error';
 
 import { createFailedKafkaMessage } from './failed-kafka-message.factory';
 import { kafkaFailureContext } from './kafka-log-context';
-import { type KafkaRecord } from './kafka-record';
-import { classifyKafkaFailure, wait } from './kafka-retry-policy';
-import { PermanentKafkaMessageError } from './permanent-kafka-message.error';
 import { transactionStatusEventContext } from './transaction-status-log-context';
 import { parseTransactionStatusRecord } from './transaction-status-record.parser';
 

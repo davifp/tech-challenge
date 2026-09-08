@@ -43,13 +43,24 @@ function buildSubject(connect: KafkaConsumer['connect']) {
   return { subject: new TransactionStatusConsumer(CONFIG, processor), kafkaConsumer };
 }
 
+function capturedRestartOnFailure() {
+  const restartOnFailure = vi.mocked(createTransactionStatusConsumer).mock.calls[0]?.[1];
+  if (!restartOnFailure) throw new Error('restartOnFailure was not configured');
+  return restartOnFailure;
+}
+
 describe('TransactionStatusConsumer lifecycle', () => {
-  beforeEach(() => vi.useFakeTimers());
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+  });
   afterEach(() => vi.useRealTimers());
 
   it('starts in background without blocking application bootstrap', async () => {
     const context = buildSubject(vi.fn().mockResolvedValue(undefined));
     expect(context.subject.onApplicationBootstrap()).toBeUndefined();
+    const restartOnFailure = capturedRestartOnFailure();
+    await expect(restartOnFailure(new Error('consumer crashed'))).resolves.toBe(true);
     expect(context.kafkaConsumer.connect).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(0);
     expect(context.kafkaConsumer.connect).toHaveBeenCalledOnce();
@@ -58,6 +69,7 @@ describe('TransactionStatusConsumer lifecycle', () => {
       eachMessage: expect.any(Function),
     });
     await context.subject.beforeApplicationShutdown();
+    await expect(restartOnFailure(new Error('consumer crashed'))).resolves.toBe(false);
   });
 
   it('schedules another connection when Kafka is initially unavailable', async () => {

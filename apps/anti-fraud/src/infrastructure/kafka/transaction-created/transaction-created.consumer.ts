@@ -1,51 +1,57 @@
 import {
   Injectable,
   Logger,
-  type BeforeApplicationShutdown,
   type OnApplicationBootstrap,
+  type OnModuleDestroy,
 } from '@nestjs/common';
-import { TRANSACTION_STATUS_UPDATED_TOPIC } from '@tech-challenge/event-contracts';
-import { type EachMessagePayload } from 'kafkajs';
+import { TRANSACTION_CREATED_TOPIC } from '@tech-challenge/event-contracts';
+import { type Consumer, type EachMessagePayload } from 'kafkajs';
+
+import { nextOffset, toKafkaRecord } from '../shared/kafka-record';
+import { type TransactionCreatedConsumerConfig } from '../shared/kafka.config';
+import { createKafkaClient } from '../shared/kafkajs-client.factory';
+import { sanitizeKafkaError } from '../shared/sanitize-kafka-error';
 
 import { kafkaConsumerLifecycleContext, kafkaCorrelationContext } from './kafka-log-context';
-import { nextOffset, toKafkaRecord } from './kafka-record';
-import {
-  createTransactionStatusConsumer,
-  type KafkaConsumer,
-} from './kafkajs-status-consumer.factory';
-import { sanitizeKafkaError } from './sanitize-kafka-error';
-import { type TransactionStatusConsumerConfig } from './transaction-status-consumer.config';
-import { type TransactionStatusMessageProcessor } from './transaction-status-message.processor';
+import { type TransactionCreatedMessageProcessor } from './transaction-created-message.processor';
 
 @Injectable()
-export class TransactionStatusConsumer
-  implements OnApplicationBootstrap, BeforeApplicationShutdown
-{
-  private readonly logger = new Logger(TransactionStatusConsumer.name);
-  private readonly consumer: KafkaConsumer;
+export class TransactionCreatedConsumer implements OnApplicationBootstrap, OnModuleDestroy {
+  private readonly logger = new Logger(TransactionCreatedConsumer.name);
+  private readonly consumer: Consumer;
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private starting?: Promise<void>;
   private stopped = true;
 
   constructor(
-    private readonly config: TransactionStatusConsumerConfig,
-    private readonly processor: TransactionStatusMessageProcessor,
+    private readonly config: TransactionCreatedConsumerConfig,
+    private readonly processor: TransactionCreatedMessageProcessor,
   ) {
-    this.consumer = createTransactionStatusConsumer(config);
+    const kafka = createKafkaClient(config);
+    this.consumer = kafka.consumer({
+      groupId: config.groupId,
+      sessionTimeout: config.sessionTimeoutMs,
+      allowAutoTopicCreation: true,
+      retry: { restartOnFailure: async () => !this.stopped },
+    });
   }
 
   onApplicationBootstrap(): void {
-    if (!this.config.enabled) return;
     this.stopped = false;
     this.scheduleStart(0);
   }
 
   async start(): Promise<void> {
     this.stopped = false;
-    await this.connectAndRun();
+    try {
+      await this.connectAndRun();
+    } catch (error: unknown) {
+      await this.consumer.disconnect().catch(() => undefined);
+      throw error;
+    }
   }
 
-  async beforeApplicationShutdown(): Promise<void> {
+  async onModuleDestroy(): Promise<void> {
     this.stopped = true;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     await this.starting?.catch(() => undefined);
@@ -75,10 +81,7 @@ export class TransactionStatusConsumer
 
   private async connectAndRun(): Promise<void> {
     await this.consumer.connect();
-    await this.consumer.subscribe({
-      topic: TRANSACTION_STATUS_UPDATED_TOPIC,
-      fromBeginning: false,
-    });
+    await this.consumer.subscribe({ topic: TRANSACTION_CREATED_TOPIC, fromBeginning: false });
     await this.consumer.run({ autoCommit: false, eachMessage: (payload) => this.handle(payload) });
     this.logger.log(kafkaConsumerLifecycleContext('connected'));
   }
@@ -86,7 +89,7 @@ export class TransactionStatusConsumer
   private async handle(payload: EachMessagePayload): Promise<void> {
     const record = toKafkaRecord(payload);
     this.logger.log({
-      eventName: TRANSACTION_STATUS_UPDATED_TOPIC,
+      eventName: TRANSACTION_CREATED_TOPIC,
       topic: record.topic,
       partition: record.partition,
       offset: record.offset,

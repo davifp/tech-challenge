@@ -11,8 +11,8 @@ import {
   type TransactionDecisionStoreOutcome,
 } from '../../src/application/ports/transaction-decision-store.port';
 import { ApplyTransactionStatusUseCase } from '../../src/application/use-cases/apply-transaction-status.use-case';
-import { type KafkaRecord } from '../../src/infrastructure/kafka/kafka-record';
-import { TransactionStatusMessageProcessor } from '../../src/infrastructure/kafka/transaction-status-message.processor';
+import { type KafkaRecord } from '../../src/infrastructure/kafka/shared/kafka-record';
+import { TransactionStatusMessageProcessor } from '../../src/infrastructure/kafka/transaction-status/transaction-status-message.processor';
 
 export const TRANSACTION_ID = '0199f9c2-1a2b-7c8d-9e0f-1234567890ab';
 export const EVENT_ID = 'd9428888-122b-5e56-8e67-849d6e8fc5c1';

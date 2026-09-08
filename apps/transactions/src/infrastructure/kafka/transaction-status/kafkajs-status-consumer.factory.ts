@@ -9,6 +9,7 @@ export type KafkaConsumer = Pick<
 
 export function createTransactionStatusConsumer(
   config: TransactionStatusConsumerConfig,
+  restartOnFailure: (err: Error) => Promise<boolean>,
 ): KafkaConsumer {
   const kafka = new Kafka({
     brokers: config.brokers,
@@ -21,5 +22,6 @@ export function createTransactionStatusConsumer(
     groupId: config.groupId,
     sessionTimeout: config.sessionTimeoutMs,
     allowAutoTopicCreation: true,
+    retry: { restartOnFailure },
   });
 }

@@ -4,10 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { type DeadLetterPublisher } from './application/ports/dead-letter-publisher.port';
 import { ApplyTransactionStatusUseCase } from './application/use-cases/apply-transaction-status.use-case';
 import { type Env } from './infrastructure/config/env.schema';
-import { KafkaJsDeadLetterPublisher } from './infrastructure/kafka/kafkajs-dead-letter.publisher';
-import { transactionStatusConsumerConfig } from './infrastructure/kafka/transaction-status-consumer.config';
-import { TransactionStatusMessageProcessor } from './infrastructure/kafka/transaction-status-message.processor';
-import { TransactionStatusConsumer } from './infrastructure/kafka/transaction-status.consumer';
+import { KafkaJsDeadLetterPublisher } from './infrastructure/kafka/transaction-status/kafkajs-dead-letter.publisher';
+import { transactionStatusConsumerConfig } from './infrastructure/kafka/transaction-status/transaction-status-consumer.config';
+import { TransactionStatusMessageProcessor } from './infrastructure/kafka/transaction-status/transaction-status-message.processor';
+import { TransactionStatusConsumer } from './infrastructure/kafka/transaction-status/transaction-status.consumer';
 
 const deadLetterPublisherProvider: Provider = {
   provide: KafkaJsDeadLetterPublisher,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { TransactionNotFoundError } from '../../application/errors/transaction-not-found.error';
+import { TransactionNotFoundError } from '../../../application/errors/transaction-not-found.error';
 
 import { classifyKafkaFailure } from './kafka-retry-policy';
 import { PermanentKafkaMessageError } from './permanent-kafka-message.error';

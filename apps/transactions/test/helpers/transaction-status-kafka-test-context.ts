@@ -8,7 +8,7 @@ import {
 
 import { ApplyTransactionStatusUseCase } from '../../src/application/use-cases/apply-transaction-status.use-case';
 import { type Env } from '../../src/infrastructure/config/env.schema';
-import { type TransactionStatusConsumerConfig } from '../../src/infrastructure/kafka/transaction-status-consumer.config';
+import { type TransactionStatusConsumerConfig } from '../../src/infrastructure/kafka/transaction-status/transaction-status-consumer.config';
 
 import { KafkaEventProbe } from './kafka-event.probe';
 import { KafkaTestHarness } from './kafka-test-harness';

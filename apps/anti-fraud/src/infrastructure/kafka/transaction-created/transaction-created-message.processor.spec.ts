@@ -6,12 +6,12 @@ import {
 } from '@tech-challenge/event-contracts';
 import { describe, expect, it, vi } from 'vitest';
 
-import { type DeadLetterPublisher } from '../../application/ports/dead-letter-publisher.port';
-import { type TransactionStatusPublisher } from '../../application/ports/transaction-status-publisher.port';
-import { AnalyzeTransactionUseCase } from '../../application/use-cases/analyze-transaction.use-case';
-import { AntiFraudPolicy } from '../../domain/anti-fraud/anti-fraud-policy';
+import { type DeadLetterPublisher } from '../../../application/ports/dead-letter-publisher.port';
+import { type TransactionStatusPublisher } from '../../../application/ports/transaction-status-publisher.port';
+import { AnalyzeTransactionUseCase } from '../../../application/use-cases/analyze-transaction.use-case';
+import { AntiFraudPolicy } from '../../../domain/anti-fraud/anti-fraud-policy';
+import { type KafkaRecord } from '../shared/kafka-record';
 
-import { type KafkaRecord } from './kafka-record';
 import { TransactionCreatedMessageProcessor } from './transaction-created-message.processor';
 
 const TRANSACTION_ID = '0199f9c2-1a2b-7c8d-9e0f-1234567890ab';

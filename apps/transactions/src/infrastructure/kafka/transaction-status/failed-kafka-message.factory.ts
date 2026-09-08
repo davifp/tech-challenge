@@ -4,8 +4,8 @@ import {
   type FailedKafkaMessageV1,
 } from '@tech-challenge/event-contracts';
 
-import { type KafkaRecord } from './kafka-record';
-import { sanitizeKafkaError } from './sanitize-kafka-error';
+import { type KafkaRecord } from '../shared/kafka-record';
+import { sanitizeKafkaError } from '../shared/sanitize-kafka-error';
 
 type FailedMessageInput = {
   record: KafkaRecord;

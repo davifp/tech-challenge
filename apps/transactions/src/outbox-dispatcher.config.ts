@@ -1,8 +1,8 @@
 import { type ConfigService } from '@nestjs/config';
 
 import { type Env } from './infrastructure/config/env.schema';
-import { type KafkaPublisherConfig } from './infrastructure/kafka/kafkajs-event.publisher';
-import { type OutboxRunnerConfig } from './infrastructure/kafka/outbox-dispatcher.runner';
+import { type KafkaPublisherConfig } from './infrastructure/kafka/transaction-created/kafkajs-event.publisher';
+import { type OutboxRunnerConfig } from './infrastructure/outbox/outbox-dispatcher.runner';
 
 export function kafkaPublisherConfig(config: ConfigService<Env, true>): KafkaPublisherConfig {
   return {
